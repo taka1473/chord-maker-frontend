@@ -1,0 +1,74 @@
+export type Score = {
+  id: number;
+  title: string;
+  key: number;
+  key_name: string;
+  tempo: number | null;
+  time_signature: string | null;
+  lyrics: string | null;
+  created_at: string;
+};
+
+export type Chord = {
+  id: number;
+  position: number;
+  root_offset: number;
+  bass_offset: number;
+  chord_type: string;
+};
+
+export type Measure = {
+  id: number;
+  position: number;
+  chords: Chord[];
+};
+
+export type WholeScore = {
+  id: number;
+  title: string;
+  key: number;
+  key_name: string;
+  tempo: number | null;
+  time_signature: string | null;
+  lyrics: string | null;
+  measures: Measure[];
+};
+
+// A=0, A#=1, B=2, C=3, C#=4, D=5, D#=6, E=7, F=8, F#=9, G=10, G#=11
+const NOTE_NAMES = [
+  "A", "A#", "B", "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#",
+] as const;
+
+const CHORD_TYPE_SUFFIX: Record<string, string> = {
+  major: "",
+  minor: "m",
+  dim: "dim",
+  aug: "aug",
+  sus2: "sus2",
+  sus4: "sus4",
+  add9: "add9",
+  maj7: "M7",
+  min7: "m7",
+  dim7: "dim7",
+  aug7: "aug7",
+};
+
+export function getNoteName(offset: number, scoreKey: number): string {
+  const index = (scoreKey + offset) % 12;
+  return NOTE_NAMES[index] ?? "?";
+}
+
+export function getChordTypeSuffix(chordType: string): string {
+  return CHORD_TYPE_SUFFIX[chordType] ?? chordType;
+}
+
+export function formatChord(chord: Chord, scoreKey: number): string {
+  const root = getNoteName(chord.root_offset, scoreKey);
+  const suffix = getChordTypeSuffix(chord.chord_type);
+  const bass = getNoteName(chord.bass_offset, scoreKey);
+
+  if (chord.root_offset === chord.bass_offset) {
+    return `${root}${suffix}`;
+  }
+  return `${root}${suffix}/${bass}`;
+}
