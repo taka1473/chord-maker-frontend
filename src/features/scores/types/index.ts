@@ -62,7 +62,48 @@ export function getChordTypeSuffix(chordType: string): string {
   return CHORD_TYPE_SUFFIX[chordType] ?? chordType;
 }
 
-export function formatChord(chord: Chord, scoreKey: number): string {
+// --- エディタ用の型 ---
+
+export type EditableChord = {
+  tempId: string;
+  id?: number;
+  position: number;
+  root_offset: number;
+  bass_offset: number;
+  chord_type: string;
+  _destroy?: boolean;
+};
+
+export type EditableMeasure = {
+  tempId: string;
+  id?: number;
+  position: number;
+  chords: EditableChord[];
+  _destroy?: boolean;
+};
+
+export type ScoreFormData = {
+  title: string;
+  key_name: string;
+  tempo: string;
+  time_signature: string;
+};
+
+// --- 定数 ---
+
+export const KEY_NAMES = [
+  "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B",
+] as const;
+
+export const CHORD_TYPES = [
+  "major", "minor", "dim", "aug", "sus2", "sus4", "add9", "maj7", "min7", "dim7", "aug7",
+] as const;
+
+export const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8"] as const;
+
+// --- ユーティリティ ---
+
+export function formatChord(chord: Pick<Chord, "root_offset" | "bass_offset" | "chord_type">, scoreKey: number): string {
   const root = getNoteName(chord.root_offset, scoreKey);
   const suffix = getChordTypeSuffix(chord.chord_type);
   const bass = getNoteName(chord.bass_offset, scoreKey);

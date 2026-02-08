@@ -2,6 +2,7 @@
 
 import { use } from "react";
 import Link from "next/link";
+import { useAuth } from "@/features/auth";
 import { useWholeScore, ChordChart } from "@/features/scores";
 
 export default function ScoreDetailPage({
@@ -10,6 +11,7 @@ export default function ScoreDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const { user } = useAuth();
   const { wholeScore, error, loading } = useWholeScore(id);
 
   return (
@@ -27,7 +29,21 @@ export default function ScoreDetailPage({
 
       {error && <p className="text-center text-red-500">{error}</p>}
 
-      {wholeScore && <ChordChart wholeScore={wholeScore} />}
+      {wholeScore && (
+        <>
+          <ChordChart wholeScore={wholeScore} />
+          {user && (
+            <div className="mt-6">
+              <Link
+                href={`/scores/${id}/edit`}
+                className="rounded bg-foreground px-6 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
+              >
+                編集
+              </Link>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
