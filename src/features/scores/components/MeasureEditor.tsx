@@ -1,13 +1,14 @@
 import type { EditableMeasure } from "@/features/scores/types";
-import { ChordEditor } from "@/features/scores/components/ChordEditor";
+import { ChordDisplay } from "@/features/scores/components/ChordDisplay";
 
 type MeasureEditorProps = {
   measure: EditableMeasure;
   measureIndex: number;
   scoreKey: number;
+  selectedChordTempId: string | null;
+  onSelectChord: (chordTempId: string) => void;
   onAddChord: () => void;
   onRemoveChord: (chordTempId: string) => void;
-  onUpdateChord: (chordTempId: string, field: string, value: number | string) => void;
   onRemoveMeasure: () => void;
 };
 
@@ -15,9 +16,10 @@ export function MeasureEditor({
   measure,
   measureIndex,
   scoreKey,
+  selectedChordTempId,
+  onSelectChord,
   onAddChord,
   onRemoveChord,
-  onUpdateChord,
   onRemoveMeasure,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
@@ -37,15 +39,14 @@ export function MeasureEditor({
         </button>
       </div>
 
-      <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {visibleChords.map((chord) => (
-          <ChordEditor
+          <ChordDisplay
             key={chord.tempId}
             chord={chord}
             scoreKey={scoreKey}
-            onUpdate={(field, value) =>
-              onUpdateChord(chord.tempId, field, value)
-            }
+            isSelected={chord.tempId === selectedChordTempId}
+            onSelect={() => onSelectChord(chord.tempId)}
             onRemove={() => onRemoveChord(chord.tempId)}
           />
         ))}

@@ -1,9 +1,10 @@
 "use client";
 
-import { useReducer, useState, useEffect } from "react";
+import { useReducer, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { MeasureEditor } from "@/features/scores/components/MeasureEditor";
+import { ChordInputPanel } from "@/features/scores/components/ChordInputPanel";
 import { useUpdateScore } from "@/features/scores/hooks/useUpdateScore";
 import type {
   WholeScore,
@@ -15,11 +16,16 @@ import { KEY_NAMES } from "@/features/scores/types";
 
 // --- Reducer ---
 
+type SelectedChord = {
+  measureTempId: string;
+  chordTempId: string;
+} | null;
+
 type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
   | { type: "ADD_MEASURE" }
   | { type: "REMOVE_MEASURE"; tempId: string }
-  | { type: "ADD_CHORD"; measureTempId: string }
+  | { type: "ADD_CHORD"; measureTempId: string; chordTempId: string }
   | { type: "REMOVE_CHORD"; measureTempId: string; chordTempId: string }
   | {
       type: "UPDATE_CHORD";
@@ -32,16 +38,6 @@ type MeasureAction =
 let tempIdCounter = 0;
 function nextTempId(): string {
   return `temp_${++tempIdCounter}`;
-}
-
-function newChord(position: number): EditableChord {
-  return {
-    tempId: nextTempId(),
-    position,
-    root_offset: 0,
-    bass_offset: 0,
-    chord_type: "major",
-  };
 }
 
 function newMeasure(position: number): EditableMeasure {
@@ -69,13 +65,15 @@ function measuresReducer(
     }
 
     case "REMOVE_MEASURE":
-      return state.map((m) =>
-        m.tempId === action.tempId
-          ? m.id
-            ? { ...m, _destroy: true }
-            : { ...m, _destroy: true }
-          : m
-      ).filter((m) => m._destroy ? m.id !== undefined : true);
+      return state
+        .map((m) =>
+          m.tempId === action.tempId
+            ? m.id
+              ? { ...m, _destroy: true }
+              : { ...m, _destroy: true }
+            : m
+        )
+        .filter((m) => (m._destroy ? m.id !== undefined : true));
 
     case "ADD_CHORD":
       return state.map((m) => {
@@ -84,7 +82,14 @@ function measuresReducer(
           (max, c) => (c._destroy ? max : Math.max(max, c.position)),
           0
         );
-        return { ...m, chords: [...m.chords, newChord(maxPos + 1)] };
+        const chord: EditableChord = {
+          tempId: action.chordTempId,
+          position: maxPos + 1,
+          root_offset: 0,
+          bass_offset: 0,
+          chord_type: "major",
+        };
+        return { ...m, chords: [...m.chords, chord] };
       });
 
     case "REMOVE_CHORD":
@@ -164,12 +169,25 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   });
 
   const [measures, dispatch] = useReducer(measuresReducer, []);
+  const [selectedChord, setSelectedChord] = useState<SelectedChord>(null);
 
   useEffect(() => {
     dispatch({ type: "INIT", measures: wholeScoreToEditable(initialData) });
+    setSelectedChord(null);
   }, [initialData]);
 
   const visibleMeasures = measures.filter((m) => !m._destroy);
+
+  const selectedChordData = useMemo<EditableChord | null>(() => {
+    if (!selectedChord) return null;
+    const measure = measures.find(
+      (m) => m.tempId === selectedChord.measureTempId
+    );
+    if (!measure) return null;
+    return (
+      measure.chords.find((c) => c.tempId === selectedChord.chordTempId) ?? null
+    );
+  }, [measures, selectedChord]);
 
   // key_name → key (数値) の変換
   const KEY_MAP: Record<string, number> = {
@@ -178,6 +196,44 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     G: 10, "G#": 11, Ab: 11,
   };
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
+
+  function handleAddChord(measureTempId: string) {
+    const chordTempId = nextTempId();
+    dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+    setSelectedChord({ measureTempId, chordTempId });
+  }
+
+  function handleRemoveChord(measureTempId: string, chordTempId: string) {
+    if (
+      selectedChord?.measureTempId === measureTempId &&
+      selectedChord?.chordTempId === chordTempId
+    ) {
+      setSelectedChord(null);
+    }
+    dispatch({ type: "REMOVE_CHORD", measureTempId, chordTempId });
+  }
+
+  function handleRemoveMeasure(measureTempId: string) {
+    if (selectedChord?.measureTempId === measureTempId) {
+      setSelectedChord(null);
+    }
+    dispatch({ type: "REMOVE_MEASURE", tempId: measureTempId });
+  }
+
+  function handleSelectChord(measureTempId: string, chordTempId: string) {
+    setSelectedChord({ measureTempId, chordTempId });
+  }
+
+  function handleUpdateField(field: string, value: number | string) {
+    if (!selectedChord) return;
+    dispatch({
+      type: "UPDATE_CHORD",
+      measureTempId: selectedChord.measureTempId,
+      chordTempId: selectedChord.chordTempId,
+      field,
+      value,
+    });
+  }
 
   async function handleSave() {
     const result = await updateScore(scoreId, formData, measures);
@@ -200,28 +256,19 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
               measure={measure}
               measureIndex={index}
               scoreKey={scoreKey}
-              onAddChord={() =>
-                dispatch({ type: "ADD_CHORD", measureTempId: measure.tempId })
+              selectedChordTempId={
+                selectedChord?.measureTempId === measure.tempId
+                  ? selectedChord.chordTempId
+                  : null
               }
+              onSelectChord={(chordTempId) =>
+                handleSelectChord(measure.tempId, chordTempId)
+              }
+              onAddChord={() => handleAddChord(measure.tempId)}
               onRemoveChord={(chordTempId) =>
-                dispatch({
-                  type: "REMOVE_CHORD",
-                  measureTempId: measure.tempId,
-                  chordTempId,
-                })
+                handleRemoveChord(measure.tempId, chordTempId)
               }
-              onUpdateChord={(chordTempId, field, value) =>
-                dispatch({
-                  type: "UPDATE_CHORD",
-                  measureTempId: measure.tempId,
-                  chordTempId,
-                  field,
-                  value,
-                })
-              }
-              onRemoveMeasure={() =>
-                dispatch({ type: "REMOVE_MEASURE", tempId: measure.tempId })
-              }
+              onRemoveMeasure={() => handleRemoveMeasure(measure.tempId)}
             />
           ))}
         </div>
@@ -233,6 +280,12 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         >
           + 小節追加
         </button>
+
+        <ChordInputPanel
+          chord={selectedChordData}
+          scoreKey={scoreKey}
+          onUpdateField={handleUpdateField}
+        />
       </div>
 
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}

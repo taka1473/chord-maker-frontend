@@ -6,7 +6,10 @@ export { ScoreCard } from "./components/ScoreCard";
 export { ScoreList } from "./components/ScoreList";
 export { ChordChart } from "./components/ChordChart";
 export { ScoreMetaForm } from "./components/ScoreMetaForm";
-export { ChordEditor } from "./components/ChordEditor";
+export { ChordDisplay } from "./components/ChordDisplay";
+export { PianoKeyboard } from "./components/PianoKeyboard";
+export { ChordTypeSelector } from "./components/ChordTypeSelector";
+export { ChordInputPanel } from "./components/ChordInputPanel";
 export { MeasureEditor } from "./components/MeasureEditor";
 export { ScoreEditor } from "./components/ScoreEditor";
 export {
