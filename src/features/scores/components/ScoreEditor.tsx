@@ -23,8 +23,8 @@ type SelectedChord = {
 
 type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
-  | { type: "ADD_MEASURE" }
-  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null }
+  | { type: "ADD_MEASURE"; newTempId: string }
+  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null; newTempId: string }
   | { type: "REMOVE_MEASURE"; tempId: string }
   | { type: "ADD_CHORD"; measureTempId: string; chordTempId: string }
   | {
@@ -62,13 +62,13 @@ function measuresReducer(
       );
       return [
         ...state,
-        { tempId: nextTempId(), position: maxPos + 1, chords: [] },
+        { tempId: action.newTempId, position: maxPos + 1, chords: [] },
       ];
     }
 
     case "INSERT_MEASURE_AFTER": {
       const newMeasure: EditableMeasure = {
-        tempId: nextTempId(),
+        tempId: action.newTempId,
         position: 0,
         chords: [],
       };
@@ -277,7 +277,11 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
 
   function handleInsertMeasure(afterTempId: string | null) {
-    dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId });
+    const measureTempId = nextTempId();
+    const chordTempId = nextTempId();
+    dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
+    dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+    setSelectedChord({ measureTempId, chordTempId });
   }
 
   function handleAddChord(measureTempId: string) {
@@ -416,7 +420,13 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
           <div className="flex items-center justify-center py-8">
             <button
               type="button"
-              onClick={() => dispatch({ type: "ADD_MEASURE" })}
+              onClick={() => {
+                const measureTempId = nextTempId();
+                const chordTempId = nextTempId();
+                dispatch({ type: "ADD_MEASURE", newTempId: measureTempId });
+                dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+                setSelectedChord({ measureTempId, chordTempId });
+              }}
               className="rounded border border-dashed border-foreground/20 px-4 py-2 text-sm text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
             >
               + 小節追加
