@@ -1,6 +1,6 @@
 "use client";
 
-import { useReducer, useState, useEffect, useMemo } from "react";
+import { Fragment, useReducer, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { MeasureEditor } from "@/features/scores/components/MeasureEditor";
@@ -24,8 +24,15 @@ type SelectedChord = {
 type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
   | { type: "ADD_MEASURE" }
+  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null }
   | { type: "REMOVE_MEASURE"; tempId: string }
   | { type: "ADD_CHORD"; measureTempId: string; chordTempId: string }
+  | {
+      type: "INSERT_CHORD_AFTER";
+      measureTempId: string;
+      afterChordTempId: string | null;
+      chordTempId: string;
+    }
   | { type: "REMOVE_CHORD"; measureTempId: string; chordTempId: string }
   | {
       type: "UPDATE_CHORD";
@@ -38,14 +45,6 @@ type MeasureAction =
 let tempIdCounter = 0;
 function nextTempId(): string {
   return `temp_${++tempIdCounter}`;
-}
-
-function newMeasure(position: number): EditableMeasure {
-  return {
-    tempId: nextTempId(),
-    position,
-    chords: [],
-  };
 }
 
 function measuresReducer(
@@ -61,7 +60,36 @@ function measuresReducer(
         (max, m) => (m._destroy ? max : Math.max(max, m.position)),
         0
       );
-      return [...state, newMeasure(maxPos + 1)];
+      return [
+        ...state,
+        { tempId: nextTempId(), position: maxPos + 1, chords: [] },
+      ];
+    }
+
+    case "INSERT_MEASURE_AFTER": {
+      const newMeasure: EditableMeasure = {
+        tempId: nextTempId(),
+        position: 0,
+        chords: [],
+      };
+
+      let insertIdx: number;
+      if (action.afterTempId === null) {
+        // Insert at the beginning
+        const firstVisibleIdx = state.findIndex((m) => !m._destroy);
+        insertIdx = firstVisibleIdx >= 0 ? firstVisibleIdx : 0;
+      } else {
+        insertIdx = state.findIndex((m) => m.tempId === action.afterTempId) + 1;
+      }
+
+      const newState = [...state];
+      newState.splice(insertIdx, 0, newMeasure);
+
+      // Renumber positions for non-destroyed measures
+      let pos = 1;
+      return newState.map((m) =>
+        m._destroy ? m : { ...m, position: pos++ }
+      );
     }
 
     case "REMOVE_MEASURE":
@@ -90,6 +118,39 @@ function measuresReducer(
           chord_type: "major",
         };
         return { ...m, chords: [...m.chords, chord] };
+      });
+
+    case "INSERT_CHORD_AFTER":
+      return state.map((m) => {
+        if (m.tempId !== action.measureTempId) return m;
+
+        const newChord: EditableChord = {
+          tempId: action.chordTempId,
+          position: 0,
+          root_offset: 0,
+          bass_offset: 0,
+          chord_type: "major",
+        };
+
+        let insertIdx: number;
+        if (action.afterChordTempId === null) {
+          const firstVisibleIdx = m.chords.findIndex((c) => !c._destroy);
+          insertIdx = firstVisibleIdx >= 0 ? firstVisibleIdx : 0;
+        } else {
+          insertIdx =
+            m.chords.findIndex((c) => c.tempId === action.afterChordTempId) + 1;
+        }
+
+        const newChords = [...m.chords];
+        newChords.splice(insertIdx, 0, newChord);
+
+        let pos = 1;
+        return {
+          ...m,
+          chords: newChords.map((c) =>
+            c._destroy ? c : { ...c, position: pos++ }
+          ),
+        };
       });
 
     case "REMOVE_CHORD":
@@ -125,6 +186,24 @@ function measuresReducer(
     default:
       return state;
   }
+}
+
+// --- Bar Line (clickable divider) ---
+
+function BarLine({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group relative flex w-3 shrink-0 cursor-pointer items-center justify-center self-stretch"
+      title="小節を挿入"
+    >
+      <div className="h-full w-px bg-foreground/30 transition-all group-hover:w-0.5 group-hover:bg-blue-500" />
+      <span className="absolute hidden h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white shadow group-hover:flex">
+        +
+      </span>
+    </button>
+  );
 }
 
 // --- Component ---
@@ -197,9 +276,27 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   };
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
 
+  function handleInsertMeasure(afterTempId: string | null) {
+    dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId });
+  }
+
   function handleAddChord(measureTempId: string) {
     const chordTempId = nextTempId();
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+    setSelectedChord({ measureTempId, chordTempId });
+  }
+
+  function handleInsertChord(
+    measureTempId: string,
+    afterChordTempId: string | null
+  ) {
+    const chordTempId = nextTempId();
+    dispatch({
+      type: "INSERT_CHORD_AFTER",
+      measureTempId,
+      afterChordTempId,
+      chordTempId,
+    });
     setSelectedChord({ measureTempId, chordTempId });
   }
 
@@ -242,6 +339,12 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     }
   }
 
+  // Split visible measures into rows of 4 for bar-line layout
+  const rows: EditableMeasure[][] = [];
+  for (let i = 0; i < visibleMeasures.length; i += 4) {
+    rows.push(visibleMeasures.slice(i, i + 4));
+  }
+
   return (
     <div>
       <ScoreMetaForm formData={formData} onChange={setFormData} />
@@ -249,37 +352,77 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       <div className="mt-6">
         <h2 className="mb-3 text-lg font-semibold">コード譜</h2>
 
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {visibleMeasures.map((measure, index) => (
-            <MeasureEditor
-              key={measure.tempId}
-              measure={measure}
-              measureIndex={index}
-              scoreKey={scoreKey}
-              selectedChordTempId={
-                selectedChord?.measureTempId === measure.tempId
-                  ? selectedChord.chordTempId
-                  : null
-              }
-              onSelectChord={(chordTempId) =>
-                handleSelectChord(measure.tempId, chordTempId)
-              }
-              onAddChord={() => handleAddChord(measure.tempId)}
-              onRemoveChord={(chordTempId) =>
-                handleRemoveChord(measure.tempId, chordTempId)
-              }
-              onRemoveMeasure={() => handleRemoveMeasure(measure.tempId)}
-            />
-          ))}
-        </div>
+        {rows.length > 0 ? (
+          <div className="space-y-0">
+            {rows.map((row, rowIdx) => (
+              <div key={rowIdx} className="flex items-stretch">
+                {/* Leading bar line for first row */}
+                {rowIdx === 0 && (
+                  <BarLine
+                    onClick={() => handleInsertMeasure(null)}
+                  />
+                )}
+                {/* Non-first rows: leading bar line inserts after prev row's last measure */}
+                {rowIdx > 0 && (
+                  <BarLine
+                    onClick={() => {
+                      const prevRow = rows[rowIdx - 1]!;
+                      const lastMeasure = prevRow[prevRow.length - 1]!;
+                      handleInsertMeasure(lastMeasure.tempId);
+                    }}
+                  />
+                )}
 
-        <button
-          type="button"
-          onClick={() => dispatch({ type: "ADD_MEASURE" })}
-          className="mt-3 rounded border border-dashed border-foreground/20 px-4 py-2 text-sm text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
-        >
-          + 小節追加
-        </button>
+                {row.map((measure, colIdx) => {
+                  const globalIndex = rowIdx * 4 + colIdx;
+                  return (
+                    <Fragment key={measure.tempId}>
+                      <div className="min-h-[60px] flex-1 border-b border-foreground/15">
+                        <MeasureEditor
+                          measure={measure}
+                          measureIndex={globalIndex}
+                          scoreKey={scoreKey}
+                          selectedChordTempId={
+                            selectedChord?.measureTempId === measure.tempId
+                              ? selectedChord.chordTempId
+                              : null
+                          }
+                          onSelectChord={(chordTempId) =>
+                            handleSelectChord(measure.tempId, chordTempId)
+                          }
+                          onAddChord={() => handleAddChord(measure.tempId)}
+                          onInsertChord={(afterChordTempId) =>
+                            handleInsertChord(measure.tempId, afterChordTempId)
+                          }
+                          onRemoveChord={(chordTempId) =>
+                            handleRemoveChord(measure.tempId, chordTempId)
+                          }
+                          onRemoveMeasure={() =>
+                            handleRemoveMeasure(measure.tempId)
+                          }
+                        />
+                      </div>
+                      {/* Bar line after each measure */}
+                      <BarLine
+                        onClick={() => handleInsertMeasure(measure.tempId)}
+                      />
+                    </Fragment>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center py-8">
+            <button
+              type="button"
+              onClick={() => dispatch({ type: "ADD_MEASURE" })}
+              className="rounded border border-dashed border-foreground/20 px-4 py-2 text-sm text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
+            >
+              + 小節追加
+            </button>
+          </div>
+        )}
 
         <ChordInputPanel
           chord={selectedChordData}
