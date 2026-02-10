@@ -20,6 +20,8 @@ export type Chord = {
 export type Measure = {
   id: number;
   position: number;
+  key: number | null;
+  key_name: string | null;
   chords: Chord[];
 };
 
@@ -87,6 +89,7 @@ export type EditableMeasure = {
   tempId: string;
   id?: number;
   position: number;
+  key_name?: string | null;
   chords: EditableChord[];
   _destroy?: boolean;
 };

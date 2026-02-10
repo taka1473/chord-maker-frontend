@@ -6,10 +6,14 @@ type ChordChartProps = {
 };
 
 export function ChordChart({ wholeScore }: ChordChartProps) {
-  const useFlats = isFlatKey(wholeScore.key_name);
+  const baseUseFlats = isFlatKey(wholeScore.key_name);
   const sortedMeasures = [...wholeScore.measures].sort(
     (a, b) => a.position - b.position
   );
+
+  // 有効キーを小節順に走査して決定
+  let currentKey = wholeScore.key;
+  let currentFlats = baseUseFlats;
 
   return (
     <div>
@@ -26,6 +30,13 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
 
       <div className="grid grid-cols-4 border-t border-l border-foreground/20">
         {sortedMeasures.map((measure) => {
+          if (measure.key_name && measure.key != null) {
+            currentKey = measure.key;
+            currentFlats = isFlatKey(measure.key_name);
+          }
+          const effectiveKey = currentKey;
+          const effectiveFlats = currentFlats;
+
           const sortedChords = [...measure.chords].sort(
             (a, b) => a.position - b.position
           );
@@ -35,10 +46,17 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
               key={measure.id}
               className="min-h-16 border-r border-b border-foreground/20 p-2"
             >
+              {measure.key_name && (
+                <div className="mb-1">
+                  <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+                    Key: {measure.key_name}
+                  </span>
+                </div>
+              )}
               <div className="flex flex-wrap gap-2">
                 {sortedChords.map((chord) => (
                   <span key={chord.id} className="font-mono text-sm">
-                    {formatChord(chord, wholeScore.key, useFlats)}
+                    {formatChord(chord, effectiveKey, effectiveFlats)}
                   </span>
                 ))}
               </div>

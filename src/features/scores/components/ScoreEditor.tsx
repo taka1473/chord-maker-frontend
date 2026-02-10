@@ -40,7 +40,8 @@ type MeasureAction =
       chordTempId: string;
       field: string;
       value: number | string;
-    };
+    }
+  | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null };
 
 let tempIdCounter = 0;
 function nextTempId(): string {
@@ -183,6 +184,13 @@ function measuresReducer(
         };
       });
 
+    case "SET_MEASURE_KEY":
+      return state.map((m) =>
+        m.tempId === action.measureTempId
+          ? { ...m, key_name: action.keyName }
+          : m
+      );
+
     default:
       return state;
   }
@@ -206,6 +214,14 @@ function BarLine({ onClick }: { onClick: () => void }) {
   );
 }
 
+// --- Constants ---
+
+const KEY_MAP: Record<string, number> = {
+  A: 0, "A#": 1, Bb: 1, B: 2, C: 3, "C#": 4, Db: 4,
+  D: 5, "D#": 6, Eb: 6, E: 7, F: 8, "F#": 9, Gb: 9,
+  G: 10, "G#": 11, Ab: 11,
+};
+
 // --- Component ---
 
 type ScoreEditorProps = {
@@ -218,6 +234,7 @@ function wholeScoreToEditable(ws: WholeScore): EditableMeasure[] {
     tempId: nextTempId(),
     id: m.id,
     position: m.position,
+    key_name: m.key_name,
     chords: m.chords.map((c) => ({
       tempId: nextTempId(),
       id: c.id,
@@ -268,14 +285,23 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     );
   }, [measures, selectedChord]);
 
-  // key_name → key (数値) の変換
-  const KEY_MAP: Record<string, number> = {
-    A: 0, "A#": 1, Bb: 1, B: 2, C: 3, "C#": 4, Db: 4,
-    D: 5, "D#": 6, Eb: 6, E: 7, F: 8, "F#": 9, Gb: 9,
-    G: 10, "G#": 11, Ab: 11,
-  };
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
   const useFlats = isFlatKey(formData.key_name);
+
+  // 小節ごとの有効キーを算出（転調対応）
+  const effectiveKeys = useMemo(() => {
+    const map = new Map<string, { scoreKey: number; useFlats: boolean }>();
+    let currentKey = scoreKey;
+    let currentFlats = useFlats;
+    for (const m of visibleMeasures) {
+      if (m.key_name) {
+        currentKey = KEY_MAP[m.key_name] ?? scoreKey;
+        currentFlats = isFlatKey(m.key_name);
+      }
+      map.set(m.tempId, { scoreKey: currentKey, useFlats: currentFlats });
+    }
+    return map;
+  }, [visibleMeasures, scoreKey, useFlats]);
 
   function handleInsertMeasure(afterTempId: string | null) {
     const measureTempId = nextTempId();
@@ -380,14 +406,15 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
 
                 {row.map((measure, colIdx) => {
                   const globalIndex = rowIdx * 4 + colIdx;
+                  const ek = effectiveKeys.get(measure.tempId);
                   return (
                     <Fragment key={measure.tempId}>
                       <div className="min-h-[60px] flex-1 border-b border-foreground/15">
                         <MeasureEditor
                           measure={measure}
                           measureIndex={globalIndex}
-                          scoreKey={scoreKey}
-                          useFlats={useFlats}
+                          scoreKey={ek?.scoreKey ?? scoreKey}
+                          useFlats={ek?.useFlats ?? useFlats}
                           selectedChordTempId={
                             selectedChord?.measureTempId === measure.tempId
                               ? selectedChord.chordTempId
@@ -405,6 +432,9 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                           }
                           onRemoveMeasure={() =>
                             handleRemoveMeasure(measure.tempId)
+                          }
+                          onSetKey={(keyName: string | null) =>
+                            dispatch({ type: "SET_MEASURE_KEY", measureTempId: measure.tempId, keyName })
                           }
                         />
                       </div>
@@ -438,8 +468,8 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
 
         <ChordInputPanel
           chord={selectedChordData}
-          scoreKey={scoreKey}
-          useFlats={useFlats}
+          scoreKey={selectedChord ? (effectiveKeys.get(selectedChord.measureTempId)?.scoreKey ?? scoreKey) : scoreKey}
+          useFlats={selectedChord ? (effectiveKeys.get(selectedChord.measureTempId)?.useFlats ?? useFlats) : useFlats}
           onUpdateField={handleUpdateField}
         />
       </div>
