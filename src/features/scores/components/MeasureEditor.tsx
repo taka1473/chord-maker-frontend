@@ -15,6 +15,9 @@ type MeasureEditorProps = {
   onRemoveChord: (chordTempId: string) => void;
   onRemoveMeasure: () => void;
   onSetKey: (keyName: string | null) => void;
+  onCopy: () => void;
+  onPaste?: () => void;
+  hasClipboard?: boolean;
 };
 
 function ChordGap({ onClick }: { onClick: () => void }) {
@@ -45,6 +48,9 @@ export function MeasureEditor({
   onRemoveChord,
   onRemoveMeasure,
   onSetKey,
+  onCopy,
+  onPaste,
+  hasClipboard = false,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
   const [showKeySelect, setShowKeySelect] = useState(false);
@@ -101,13 +107,33 @@ export function MeasureEditor({
             </>
           )}
         </div>
-        <button
-          type="button"
-          onClick={onRemoveMeasure}
-          className="rounded px-1.5 py-0.5 text-[10px] text-red-500 transition-colors hover:bg-red-500/10"
-        >
-          削除
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onCopy}
+            className="rounded px-1.5 py-0.5 text-[10px] text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
+            title="小節をコピー"
+          >
+            コピー
+          </button>
+          {hasClipboard && onPaste && (
+            <button
+              type="button"
+              onClick={onPaste}
+              className="rounded px-1.5 py-0.5 text-[10px] text-green-600 transition-colors hover:bg-green-500/10 dark:text-green-400"
+              title="この小節の後にペースト"
+            >
+              ペースト
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onRemoveMeasure}
+            className="rounded px-1.5 py-0.5 text-[10px] text-red-500 transition-colors hover:bg-red-500/10"
+          >
+            削除
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-wrap items-center">

@@ -198,21 +198,40 @@ function measuresReducer(
 
 // --- Bar Line (clickable divider) ---
 
-function BarLine({ onClick }: { onClick: () => void }) {
+function BarLine({ onClick, onPaste, hasClipboard }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="group relative flex w-3 shrink-0 cursor-pointer items-center justify-center self-stretch"
-      title="小節を挿入"
-    >
+    <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className="h-full w-px bg-foreground/30 transition-all group-hover:w-0.5 group-hover:bg-blue-500" />
-      <span className="absolute hidden h-5 w-5 items-center justify-center rounded-full bg-blue-500 text-[10px] text-white shadow group-hover:flex">
-        +
-      </span>
-    </button>
+      <div className="absolute hidden flex-col gap-1 group-hover:flex">
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-blue-500 text-[10px] text-white shadow hover:bg-blue-600"
+          title="小節を挿入"
+        >
+          +
+        </button>
+        {hasClipboard && onPaste && (
+          <button
+            type="button"
+            onClick={onPaste}
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-green-500 text-[10px] text-white shadow hover:bg-green-600"
+            title="コピーした小節をペースト"
+          >
+            ⎘
+          </button>
+        )}
+      </div>
+    </div>
   );
 }
+
+// --- Types ---
+
+type ClipboardMeasure = {
+  key_name?: string | null;
+  chords: { root_offset: number; bass_offset: number; chord_type: string }[];
+};
 
 // --- Constants ---
 
@@ -266,6 +285,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
 
   const [measures, dispatch] = useReducer(measuresReducer, []);
   const [selectedChord, setSelectedChord] = useState<SelectedChord>(null);
+  const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
 
   useEffect(() => {
     dispatch({ type: "INIT", measures: wholeScoreToEditable(initialData) });
@@ -363,6 +383,41 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     });
   }
 
+  function handleCopyMeasure(measureTempId: string) {
+    const measure = measures.find((m) => m.tempId === measureTempId);
+    if (!measure) return;
+    const visibleChords = measure.chords.filter((c) => !c._destroy);
+    setClipboard({
+      key_name: measure.key_name,
+      chords: visibleChords.map((c) => ({
+        root_offset: c.root_offset,
+        bass_offset: c.bass_offset,
+        chord_type: c.chord_type,
+      })),
+    });
+  }
+
+  function handlePasteMeasure(afterTempId: string | null) {
+    if (!clipboard) return;
+    const measureTempId = nextTempId();
+    dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
+    if (clipboard.key_name) {
+      dispatch({ type: "SET_MEASURE_KEY", measureTempId, keyName: clipboard.key_name });
+    }
+    let firstChordTempId: string | null = null;
+    for (const chord of clipboard.chords) {
+      const chordTempId = nextTempId();
+      if (!firstChordTempId) firstChordTempId = chordTempId;
+      dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "root_offset", value: chord.root_offset });
+      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "bass_offset", value: chord.bass_offset });
+      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "chord_type", value: chord.chord_type });
+    }
+    if (firstChordTempId) {
+      setSelectedChord({ measureTempId, chordTempId: firstChordTempId });
+    }
+  }
+
   async function handleSave() {
     const result = await updateScore(scoreId, formData, measures);
     if (result) {
@@ -391,6 +446,8 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                 {rowIdx === 0 && (
                   <BarLine
                     onClick={() => handleInsertMeasure(null)}
+                    onPaste={() => handlePasteMeasure(null)}
+                    hasClipboard={!!clipboard}
                   />
                 )}
                 {/* Non-first rows: leading bar line inserts after prev row's last measure */}
@@ -401,6 +458,12 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                       const lastMeasure = prevRow[prevRow.length - 1]!;
                       handleInsertMeasure(lastMeasure.tempId);
                     }}
+                    onPaste={() => {
+                      const prevRow = rows[rowIdx - 1]!;
+                      const lastMeasure = prevRow[prevRow.length - 1]!;
+                      handlePasteMeasure(lastMeasure.tempId);
+                    }}
+                    hasClipboard={!!clipboard}
                   />
                 )}
 
@@ -436,11 +499,16 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                           onSetKey={(keyName: string | null) =>
                             dispatch({ type: "SET_MEASURE_KEY", measureTempId: measure.tempId, keyName })
                           }
+                          onCopy={() => handleCopyMeasure(measure.tempId)}
+                          onPaste={() => handlePasteMeasure(measure.tempId)}
+                          hasClipboard={!!clipboard}
                         />
                       </div>
                       {/* Bar line after each measure */}
                       <BarLine
                         onClick={() => handleInsertMeasure(measure.tempId)}
+                        onPaste={() => handlePasteMeasure(measure.tempId)}
+                        hasClipboard={!!clipboard}
                       />
                     </Fragment>
                   );
