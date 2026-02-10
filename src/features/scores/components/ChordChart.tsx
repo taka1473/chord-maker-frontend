@@ -1,11 +1,12 @@
 import type { WholeScore } from "@/features/scores/types";
-import { formatChord } from "@/features/scores/types";
+import { formatChord, isFlatKey } from "@/features/scores/types";
 
 type ChordChartProps = {
   wholeScore: WholeScore;
 };
 
 export function ChordChart({ wholeScore }: ChordChartProps) {
+  const useFlats = isFlatKey(wholeScore.key_name);
   const sortedMeasures = [...wholeScore.measures].sort(
     (a, b) => a.position - b.position
   );
@@ -37,7 +38,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
               <div className="flex flex-wrap gap-2">
                 {sortedChords.map((chord) => (
                   <span key={chord.id} className="font-mono text-sm">
-                    {formatChord(chord, wholeScore.key)}
+                    {formatChord(chord, wholeScore.key, useFlats)}
                   </span>
                 ))}
               </div>

@@ -11,12 +11,14 @@ type NoteMode = "root" | "bass";
 type ChordInputPanelProps = {
   chord: EditableChord | null;
   scoreKey: number;
+  useFlats?: boolean;
   onUpdateField: (field: string, value: number | string) => void;
 };
 
 export function ChordInputPanel({
   chord,
   scoreKey,
+  useFlats = false,
   onUpdateField,
 }: ChordInputPanelProps) {
   const [noteMode, setNoteMode] = useState<NoteMode>("root");
@@ -56,7 +58,7 @@ export function ChordInputPanel({
   return (
     <div className="mt-4 rounded-lg border border-foreground/15 p-4">
       <div className="mb-4 text-center font-mono text-xl font-bold">
-        {formatChord(chord, scoreKey)}
+        {formatChord(chord, scoreKey, useFlats)}
       </div>
 
       <div className="mb-3">
@@ -104,6 +106,7 @@ export function ChordInputPanel({
         <PianoKeyboard
           selectedOffset={selectedOffset}
           scoreKey={scoreKey}
+          useFlats={useFlats}
           onSelect={handlePianoSelect}
         />
       </div>

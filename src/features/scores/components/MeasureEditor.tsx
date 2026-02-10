@@ -6,6 +6,7 @@ type MeasureEditorProps = {
   measure: EditableMeasure;
   measureIndex: number;
   scoreKey: number;
+  useFlats?: boolean;
   selectedChordTempId: string | null;
   onSelectChord: (chordTempId: string) => void;
   onAddChord: () => void;
@@ -34,6 +35,7 @@ export function MeasureEditor({
   measure,
   measureIndex,
   scoreKey,
+  useFlats = false,
   selectedChordTempId,
   onSelectChord,
   onAddChord,
@@ -67,6 +69,7 @@ export function MeasureEditor({
                 <ChordDisplay
                   chord={chord}
                   scoreKey={scoreKey}
+                  useFlats={useFlats}
                   isSelected={chord.tempId === selectedChordTempId}
                   onSelect={() => onSelectChord(chord.tempId)}
                   onRemove={() => onRemoveChord(chord.tempId)}

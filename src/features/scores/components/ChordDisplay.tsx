@@ -4,6 +4,7 @@ import { formatChord } from "@/features/scores/types";
 type ChordDisplayProps = {
   chord: EditableChord;
   scoreKey: number;
+  useFlats?: boolean;
   isSelected: boolean;
   onSelect: () => void;
   onRemove: () => void;
@@ -12,6 +13,7 @@ type ChordDisplayProps = {
 export function ChordDisplay({
   chord,
   scoreKey,
+  useFlats = false,
   isSelected,
   onSelect,
   onRemove,
@@ -28,7 +30,7 @@ export function ChordDisplay({
             : "border border-foreground/20 hover:border-foreground/40",
         ].join(" ")}
       >
-        {formatChord(chord, scoreKey)}
+        {formatChord(chord, scoreKey, useFlats)}
       </button>
       <button
         type="button"

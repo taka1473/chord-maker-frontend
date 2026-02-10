@@ -4,6 +4,7 @@ type PianoKeyboardProps = {
   selectedOffset: number;
   scoreKey: number;
   onSelect: (offset: number) => void;
+  useFlats?: boolean;
   compact?: boolean;
 };
 
@@ -26,6 +27,7 @@ export function PianoKeyboard({
   selectedOffset,
   scoreKey,
   onSelect,
+  useFlats = false,
   compact = false,
 }: PianoKeyboardProps) {
   const whiteHeight = compact ? "h-10" : "h-14";
@@ -54,7 +56,7 @@ export function PianoKeyboard({
                 : "bg-background hover:bg-foreground/5",
             ].join(" ")}
           >
-            {getNoteName(offset, scoreKey)}
+            {getNoteName(offset, scoreKey, useFlats)}
           </button>
         );
       })}
@@ -83,7 +85,7 @@ export function PianoKeyboard({
               width: `${blackWidthPercent}%`,
             }}
           >
-            {getNoteName(offset, scoreKey)}
+            {getNoteName(offset, scoreKey, useFlats)}
           </button>
         );
       })}

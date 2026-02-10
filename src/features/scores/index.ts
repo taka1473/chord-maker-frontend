@@ -16,6 +16,7 @@ export {
   formatChord,
   getNoteName,
   getChordTypeSuffix,
+  isFlatKey,
   KEY_NAMES,
   CHORD_TYPES,
   TIME_SIGNATURES,

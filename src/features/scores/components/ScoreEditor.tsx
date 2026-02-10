@@ -12,7 +12,7 @@ import type {
   EditableMeasure,
   EditableChord,
 } from "@/features/scores/types";
-import { KEY_NAMES } from "@/features/scores/types";
+import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
 
 // --- Reducer ---
 
@@ -275,6 +275,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     G: 10, "G#": 11, Ab: 11,
   };
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
+  const useFlats = isFlatKey(formData.key_name);
 
   function handleInsertMeasure(afterTempId: string | null) {
     const measureTempId = nextTempId();
@@ -386,6 +387,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                           measure={measure}
                           measureIndex={globalIndex}
                           scoreKey={scoreKey}
+                          useFlats={useFlats}
                           selectedChordTempId={
                             selectedChord?.measureTempId === measure.tempId
                               ? selectedChord.chordTempId
@@ -437,6 +439,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         <ChordInputPanel
           chord={selectedChordData}
           scoreKey={scoreKey}
+          useFlats={useFlats}
           onUpdateField={handleUpdateField}
         />
       </div>
