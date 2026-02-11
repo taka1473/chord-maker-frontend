@@ -14,12 +14,42 @@ import type {
 } from "@/features/scores/types";
 import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
 
-// --- Reducer ---
+// --- Selection ---
 
-type SelectedChord = {
-  measureTempId: string;
-  chordTempId: string;
-} | null;
+type Selection =
+  | { type: "chord"; measureTempId: string; chordTempId: string }
+  | { type: "chord_gap"; measureTempId: string; afterChordTempId: string | null }
+  | { type: "bar_line"; afterMeasureTempId: string | null }
+  | null;
+
+function selectionEquals(a: NonNullable<Selection>, b: NonNullable<Selection>): boolean {
+  if (a.type !== b.type) return false;
+  switch (a.type) {
+    case "chord":
+      return a.measureTempId === (b as typeof a).measureTempId && a.chordTempId === (b as typeof a).chordTempId;
+    case "chord_gap":
+      return a.measureTempId === (b as typeof a).measureTempId && a.afterChordTempId === (b as typeof a).afterChordTempId;
+    case "bar_line":
+      return a.afterMeasureTempId === (b as typeof a).afterMeasureTempId;
+  }
+}
+
+function buildNavItems(visibleMeasures: EditableMeasure[]): NonNullable<Selection>[] {
+  const items: NonNullable<Selection>[] = [];
+  items.push({ type: "bar_line", afterMeasureTempId: null });
+  for (const m of visibleMeasures) {
+    const visChords = m.chords.filter((c) => !c._destroy);
+    items.push({ type: "chord_gap", measureTempId: m.tempId, afterChordTempId: null });
+    for (const c of visChords) {
+      items.push({ type: "chord", measureTempId: m.tempId, chordTempId: c.tempId });
+      items.push({ type: "chord_gap", measureTempId: m.tempId, afterChordTempId: c.tempId });
+    }
+    items.push({ type: "bar_line", afterMeasureTempId: m.tempId });
+  }
+  return items;
+}
+
+// --- Reducer ---
 
 type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
@@ -198,11 +228,18 @@ function measuresReducer(
 
 // --- Bar Line (clickable divider) ---
 
-function BarLine({ onClick, onPaste, hasClipboard }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean }) {
+function BarLine({ onClick, onPaste, hasClipboard, isSelected }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean; isSelected?: boolean }) {
+  const showButtons = isSelected;
   return (
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
-      <div className="h-full w-px bg-foreground/30 transition-all group-hover:w-0.5 group-hover:bg-blue-500" />
-      <div className="absolute hidden flex-col gap-1 group-hover:flex">
+      <div className={[
+        "h-full w-px transition-all",
+        isSelected ? "w-0.5 bg-blue-500" : "bg-foreground/30 group-hover:w-0.5 group-hover:bg-blue-500",
+      ].join(" ")} />
+      <div className={[
+        "absolute flex-col gap-1",
+        showButtons ? "flex" : "hidden group-hover:flex",
+      ].join(" ")}>
         <button
           type="button"
           onClick={onClick}
@@ -284,26 +321,26 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   });
 
   const [measures, dispatch] = useReducer(measuresReducer, []);
-  const [selectedChord, setSelectedChord] = useState<SelectedChord>(null);
+  const [selection, setSelection] = useState<Selection>(null);
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
 
   useEffect(() => {
     dispatch({ type: "INIT", measures: wholeScoreToEditable(initialData) });
-    setSelectedChord(null);
+    setSelection(null);
   }, [initialData]);
 
   const visibleMeasures = measures.filter((m) => !m._destroy);
 
   const selectedChordData = useMemo<EditableChord | null>(() => {
-    if (!selectedChord) return null;
+    if (!selection || selection.type !== "chord") return null;
     const measure = measures.find(
-      (m) => m.tempId === selectedChord.measureTempId
+      (m) => m.tempId === selection.measureTempId
     );
     if (!measure) return null;
     return (
-      measure.chords.find((c) => c.tempId === selectedChord.chordTempId) ?? null
+      measure.chords.find((c) => c.tempId === selection.chordTempId) ?? null
     );
-  }, [measures, selectedChord]);
+  }, [measures, selection]);
 
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
   const useFlats = isFlatKey(formData.key_name);
@@ -323,18 +360,36 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     return map;
   }, [visibleMeasures, scoreKey, useFlats]);
 
+  // ナビゲーションリスト
+  const navItems = useMemo(() => buildNavItems(visibleMeasures), [visibleMeasures]);
+
+  function handleNavigate(direction: "left" | "right") {
+    if (!selection) {
+      const first = navItems[0];
+      if (first) setSelection(first);
+      return;
+    }
+    const currentIdx = navItems.findIndex((item) => selectionEquals(item, selection));
+    if (currentIdx === -1) return;
+    const nextIdx = direction === "left" ? currentIdx - 1 : currentIdx + 1;
+    const next = navItems[nextIdx];
+    if (next) {
+      setSelection(next);
+    }
+  }
+
   function handleInsertMeasure(afterTempId: string | null) {
     const measureTempId = nextTempId();
     const chordTempId = nextTempId();
     dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-    setSelectedChord({ measureTempId, chordTempId });
+    setSelection({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleAddChord(measureTempId: string) {
     const chordTempId = nextTempId();
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-    setSelectedChord({ measureTempId, chordTempId });
+    setSelection({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleInsertChord(
@@ -348,36 +403,37 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       afterChordTempId,
       chordTempId,
     });
-    setSelectedChord({ measureTempId, chordTempId });
+    setSelection({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleRemoveChord(measureTempId: string, chordTempId: string) {
     if (
-      selectedChord?.measureTempId === measureTempId &&
-      selectedChord?.chordTempId === chordTempId
+      selection?.type === "chord" &&
+      selection.measureTempId === measureTempId &&
+      selection.chordTempId === chordTempId
     ) {
-      setSelectedChord(null);
+      setSelection(null);
     }
     dispatch({ type: "REMOVE_CHORD", measureTempId, chordTempId });
   }
 
   function handleRemoveMeasure(measureTempId: string) {
-    if (selectedChord?.measureTempId === measureTempId) {
-      setSelectedChord(null);
+    if (selection && "measureTempId" in selection && selection.measureTempId === measureTempId) {
+      setSelection(null);
     }
     dispatch({ type: "REMOVE_MEASURE", tempId: measureTempId });
   }
 
   function handleSelectChord(measureTempId: string, chordTempId: string) {
-    setSelectedChord({ measureTempId, chordTempId });
+    setSelection({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleUpdateField(field: string, value: number | string) {
-    if (!selectedChord) return;
+    if (!selection || selection.type !== "chord") return;
     dispatch({
       type: "UPDATE_CHORD",
-      measureTempId: selectedChord.measureTempId,
-      chordTempId: selectedChord.chordTempId,
+      measureTempId: selection.measureTempId,
+      chordTempId: selection.chordTempId,
       field,
       value,
     });
@@ -414,7 +470,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "chord_type", value: chord.chord_type });
     }
     if (firstChordTempId) {
-      setSelectedChord({ measureTempId, chordTempId: firstChordTempId });
+      setSelection({ type: "chord", measureTempId, chordTempId: firstChordTempId });
     }
   }
 
@@ -424,6 +480,25 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       router.push(`/scores/${scoreId}`);
     }
   }
+
+  // BarLine の選択判定ヘルパー
+  function isBarLineSelected(afterMeasureTempId: string | null): boolean {
+    return selection?.type === "bar_line" && selection.afterMeasureTempId === afterMeasureTempId;
+  }
+
+  // ChordGap の選択判定ヘルパー
+  function getSelectedGap(measureTempId: string): string | null | undefined {
+    if (selection?.type === "chord_gap" && selection.measureTempId === measureTempId) {
+      return selection.afterChordTempId;
+    }
+    return undefined; // このmeasureにギャップ選択なし
+  }
+
+  // 選択中コードが属する小節のキー
+  const selectedMeasureKey = useMemo(() => {
+    if (!selection || !("measureTempId" in selection)) return { scoreKey, useFlats };
+    return effectiveKeys.get(selection.measureTempId) ?? { scoreKey, useFlats };
+  }, [selection, effectiveKeys, scoreKey, useFlats]);
 
   // Split visible measures into rows of 4 for bar-line layout
   const rows: EditableMeasure[][] = [];
@@ -448,24 +523,22 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                     onClick={() => handleInsertMeasure(null)}
                     onPaste={() => handlePasteMeasure(null)}
                     hasClipboard={!!clipboard}
+                    isSelected={isBarLineSelected(null)}
                   />
                 )}
                 {/* Non-first rows: leading bar line inserts after prev row's last measure */}
-                {rowIdx > 0 && (
-                  <BarLine
-                    onClick={() => {
-                      const prevRow = rows[rowIdx - 1]!;
-                      const lastMeasure = prevRow[prevRow.length - 1]!;
-                      handleInsertMeasure(lastMeasure.tempId);
-                    }}
-                    onPaste={() => {
-                      const prevRow = rows[rowIdx - 1]!;
-                      const lastMeasure = prevRow[prevRow.length - 1]!;
-                      handlePasteMeasure(lastMeasure.tempId);
-                    }}
-                    hasClipboard={!!clipboard}
-                  />
-                )}
+                {rowIdx > 0 && (() => {
+                  const prevRow = rows[rowIdx - 1]!;
+                  const lastMeasure = prevRow[prevRow.length - 1]!;
+                  return (
+                    <BarLine
+                      onClick={() => handleInsertMeasure(lastMeasure.tempId)}
+                      onPaste={() => handlePasteMeasure(lastMeasure.tempId)}
+                      hasClipboard={!!clipboard}
+                      isSelected={isBarLineSelected(lastMeasure.tempId)}
+                    />
+                  );
+                })()}
 
                 {row.map((measure, colIdx) => {
                   const globalIndex = rowIdx * 4 + colIdx;
@@ -479,10 +552,11 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                           scoreKey={ek?.scoreKey ?? scoreKey}
                           useFlats={ek?.useFlats ?? useFlats}
                           selectedChordTempId={
-                            selectedChord?.measureTempId === measure.tempId
-                              ? selectedChord.chordTempId
+                            selection?.type === "chord" && selection.measureTempId === measure.tempId
+                              ? selection.chordTempId
                               : null
                           }
+                          selectedGapAfterChordTempId={getSelectedGap(measure.tempId)}
                           onSelectChord={(chordTempId) =>
                             handleSelectChord(measure.tempId, chordTempId)
                           }
@@ -509,6 +583,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                         onClick={() => handleInsertMeasure(measure.tempId)}
                         onPaste={() => handlePasteMeasure(measure.tempId)}
                         hasClipboard={!!clipboard}
+                        isSelected={isBarLineSelected(measure.tempId)}
                       />
                     </Fragment>
                   );
@@ -525,7 +600,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                 const chordTempId = nextTempId();
                 dispatch({ type: "ADD_MEASURE", newTempId: measureTempId });
                 dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-                setSelectedChord({ measureTempId, chordTempId });
+                setSelection({ type: "chord", measureTempId, chordTempId });
               }}
               className="rounded border border-dashed border-foreground/20 px-4 py-2 text-sm text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
             >
@@ -534,12 +609,80 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
           </div>
         )}
 
-        <ChordInputPanel
-          chord={selectedChordData}
-          scoreKey={selectedChord ? (effectiveKeys.get(selectedChord.measureTempId)?.scoreKey ?? scoreKey) : scoreKey}
-          useFlats={selectedChord ? (effectiveKeys.get(selectedChord.measureTempId)?.useFlats ?? useFlats) : useFlats}
-          onUpdateField={handleUpdateField}
-        />
+        {/* ナビゲーション矢印 */}
+        {visibleMeasures.length > 0 && (
+          <div className="mt-3 flex items-center justify-center gap-4">
+            <button
+              type="button"
+              onClick={() => handleNavigate("left")}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/20 text-sm text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10"
+            >
+              ◀
+            </button>
+            <span className="text-xs text-foreground/40">
+              {!selection && "タップで選択"}
+              {selection?.type === "chord" && "コード選択中"}
+              {selection?.type === "chord_gap" && "コード挿入位置"}
+              {selection?.type === "bar_line" && "小節挿入位置"}
+            </span>
+            <button
+              type="button"
+              onClick={() => handleNavigate("right")}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/20 text-sm text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10"
+            >
+              ▶
+            </button>
+          </div>
+        )}
+
+        {/* アクションパネル: 選択状態に応じて切り替え */}
+        {selection?.type === "chord" && (
+          <ChordInputPanel
+            chord={selectedChordData}
+            scoreKey={selectedMeasureKey.scoreKey}
+            useFlats={selectedMeasureKey.useFlats}
+            onUpdateField={handleUpdateField}
+          />
+        )}
+
+        {selection?.type === "chord_gap" && (
+          <div className="mt-4 flex items-center justify-center rounded-lg border border-dashed border-foreground/20 py-6">
+            <button
+              type="button"
+              onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
+              className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              + コードを挿入
+            </button>
+          </div>
+        )}
+
+        {selection?.type === "bar_line" && (
+          <div className="mt-4 flex items-center justify-center gap-3 rounded-lg border border-dashed border-foreground/20 py-6">
+            <button
+              type="button"
+              onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
+              className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+            >
+              + 小節を挿入
+            </button>
+            {clipboard && (
+              <button
+                type="button"
+                onClick={() => handlePasteMeasure(selection.afterMeasureTempId)}
+                className="rounded bg-green-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              >
+                ペースト
+              </button>
+            )}
+          </div>
+        )}
+
+        {!selection && visibleMeasures.length > 0 && (
+          <div className="mt-4 rounded-lg border border-dashed border-foreground/20 py-6 text-center text-sm text-foreground/40">
+            コードを選択するか、◀ ▶ で移動してください
+          </div>
+        )}
       </div>
 
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}

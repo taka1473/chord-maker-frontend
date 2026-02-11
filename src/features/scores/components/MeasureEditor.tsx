@@ -18,9 +18,10 @@ type MeasureEditorProps = {
   onCopy: () => void;
   onPaste?: () => void;
   hasClipboard?: boolean;
+  selectedGapAfterChordTempId?: string | null | undefined;
 };
 
-function ChordGap({ onClick }: { onClick: () => void }) {
+function ChordGap({ onClick, isSelected }: { onClick: () => void; isSelected?: boolean }) {
   return (
     <button
       type="button"
@@ -28,8 +29,14 @@ function ChordGap({ onClick }: { onClick: () => void }) {
       className="group flex w-2 shrink-0 cursor-pointer items-center justify-center self-stretch"
       title="コードを挿入"
     >
-      <div className="h-full w-px bg-transparent transition-all group-hover:bg-blue-500" />
-      <span className="absolute hidden h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] text-white shadow group-hover:flex">
+      <div className={[
+        "h-full w-px transition-all",
+        isSelected ? "w-0.5 bg-blue-500" : "bg-transparent group-hover:bg-blue-500",
+      ].join(" ")} />
+      <span className={[
+        "absolute h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] text-white shadow",
+        isSelected ? "flex" : "hidden group-hover:flex",
+      ].join(" ")}>
         +
       </span>
     </button>
@@ -51,6 +58,7 @@ export function MeasureEditor({
   onCopy,
   onPaste,
   hasClipboard = false,
+  selectedGapAfterChordTempId,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
   const [showKeySelect, setShowKeySelect] = useState(false);
@@ -139,7 +147,7 @@ export function MeasureEditor({
       <div className="flex flex-wrap items-center">
         {visibleChords.length > 0 ? (
           <>
-            <ChordGap onClick={() => onInsertChord(null)} />
+            <ChordGap onClick={() => onInsertChord(null)} isSelected={selectedGapAfterChordTempId === null} />
             {visibleChords.map((chord) => (
               <Fragment key={chord.tempId}>
                 <ChordDisplay
@@ -150,7 +158,7 @@ export function MeasureEditor({
                   onSelect={() => onSelectChord(chord.tempId)}
                   onRemove={() => onRemoveChord(chord.tempId)}
                 />
-                <ChordGap onClick={() => onInsertChord(chord.tempId)} />
+                <ChordGap onClick={() => onInsertChord(chord.tempId)} isSelected={selectedGapAfterChordTempId === chord.tempId} />
               </Fragment>
             ))}
           </>
