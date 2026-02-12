@@ -1,9 +1,11 @@
 export { useScores } from "./hooks/useScores";
+export { useMyScores } from "./hooks/useMyScores";
 export { useWholeScore } from "./hooks/useWholeScore";
 export { useCreateScore } from "./hooks/useCreateScore";
 export { useUpdateScore } from "./hooks/useUpdateScore";
 export { ScoreCard } from "./components/ScoreCard";
 export { ScoreList } from "./components/ScoreList";
+export { MyScoreList } from "./components/MyScoreList";
 export { ChordChart } from "./components/ChordChart";
 export { ScoreMetaForm } from "./components/ScoreMetaForm";
 export { ChordDisplay } from "./components/ChordDisplay";
