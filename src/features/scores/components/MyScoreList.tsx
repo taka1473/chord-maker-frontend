@@ -21,6 +21,9 @@ function MyScoreCard({ score }: { score: Score }) {
             {score.published ? "公開中" : "非公開"}
           </span>
         </div>
+        {score.artist && (
+          <p className="mt-0.5 text-sm text-foreground/60">{score.artist}</p>
+        )}
         <div className="mt-2 flex flex-wrap gap-3 text-sm text-foreground/60">
           <span>Key: {score.key_name}</span>
           {score.tempo && <span>BPM: {score.tempo}</span>}

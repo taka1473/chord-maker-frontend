@@ -30,6 +30,18 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
         />
       </div>
 
+      <div className="sm:col-span-2">
+        <label className="mb-1 block text-sm font-medium">アーティスト</label>
+        <input
+          type="text"
+          value={formData.artist}
+          onChange={(e) => handleChange("artist", e.target.value)}
+          placeholder="アーティスト名を入力"
+          maxLength={100}
+          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
+        />
+      </div>
+
       <div>
         <label className="mb-1 block text-sm font-medium">
           キー <span className="text-red-500">*</span>

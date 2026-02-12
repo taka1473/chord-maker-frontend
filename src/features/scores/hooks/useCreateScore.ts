@@ -17,6 +17,7 @@ export function useCreateScore() {
         body: {
           score: {
             title: formData.title,
+            artist: formData.artist || undefined,
             key_name: formData.key_name,
             tempo: formData.tempo ? Number(formData.tempo) : undefined,
             time_signature: formData.time_signature || undefined,

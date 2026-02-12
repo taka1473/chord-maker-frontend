@@ -106,6 +106,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
 
   const [formData, setFormData] = useState<ScoreFormData>({
     title: initialData.title,
+    artist: initialData.artist ?? "",
     key_name: resolveKeyName(initialData),
     tempo: initialData.tempo?.toString() ?? "",
     time_signature: initialData.time_signature ?? "",

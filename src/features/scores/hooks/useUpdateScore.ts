@@ -46,6 +46,7 @@ export function useUpdateScore() {
             body: {
               score: {
                 title: formData.title,
+                artist: formData.artist || null,
                 key_name: formData.key_name,
                 tempo: formData.tempo ? Number(formData.tempo) : null,
                 time_signature: formData.time_signature || null,

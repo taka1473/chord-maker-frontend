@@ -19,6 +19,9 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
     <div>
       <div className="mb-6">
         <h1 className="text-2xl font-bold">{wholeScore.title}</h1>
+        {wholeScore.artist && (
+          <p className="mt-1 text-sm text-foreground/60">{wholeScore.artist}</p>
+        )}
         <div className="mt-2 flex flex-wrap gap-4 text-sm text-foreground/60">
           <span>Key: {wholeScore.key_name}</span>
           {wholeScore.tempo && <span>BPM: {wholeScore.tempo}</span>}

@@ -14,6 +14,7 @@ function NewScoreContent() {
 
   const [formData, setFormData] = useState<ScoreFormData>({
     title: "",
+    artist: "",
     key_name: "C",
     tempo: "",
     time_signature: "4/4",

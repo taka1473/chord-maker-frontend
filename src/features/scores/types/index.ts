@@ -1,6 +1,7 @@
 export type Score = {
   id: number;
   title: string;
+  artist: string | null;
   key: number;
   key_name: string;
   tempo: number | null;
@@ -29,6 +30,7 @@ export type Measure = {
 export type WholeScore = {
   id: number;
   title: string;
+  artist: string | null;
   key: number;
   key_name: string;
   tempo: number | null;
@@ -98,6 +100,7 @@ export type EditableMeasure = {
 
 export type ScoreFormData = {
   title: string;
+  artist: string;
   key_name: string;
   tempo: string;
   time_signature: string;
