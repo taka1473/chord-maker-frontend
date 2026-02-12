@@ -33,7 +33,8 @@ export function useUpdateScore() {
     async (
       id: number,
       formData: ScoreFormData,
-      measures: EditableMeasure[]
+      measures: EditableMeasure[],
+      published: boolean
     ) => {
       setError(null);
       setLoading(true);
@@ -48,6 +49,7 @@ export function useUpdateScore() {
                 key_name: formData.key_name,
                 tempo: formData.tempo ? Number(formData.tempo) : null,
                 time_signature: formData.time_signature || null,
+                published,
                 measures_attributes: toMeasuresAttributes(measures),
               },
             },

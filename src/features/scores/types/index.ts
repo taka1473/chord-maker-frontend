@@ -7,6 +7,7 @@ export type Score = {
   time_signature: string | null;
   lyrics: string | null;
   created_at: string;
+  published: boolean;
 };
 
 export type Chord = {
@@ -33,6 +34,7 @@ export type WholeScore = {
   tempo: number | null;
   time_signature: string | null;
   lyrics: string | null;
+  published: boolean;
   measures: Measure[];
 };
 

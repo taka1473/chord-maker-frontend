@@ -15,7 +15,8 @@ export function useWholeScore(id: string) {
     async function fetchWholeScore() {
       try {
         const data = await apiClient<WholeScore>(
-          `/api/scores/${id}/whole_score`
+          `/api/scores/${id}/whole_score`,
+          { requireAuth: "optional" }
         );
         if (!cancelled) {
           setWholeScore(data);

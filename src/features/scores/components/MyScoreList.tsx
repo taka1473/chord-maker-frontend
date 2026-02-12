@@ -8,7 +8,19 @@ function MyScoreCard({ score }: { score: Score }) {
   return (
     <div className="rounded-lg border border-foreground/10 p-4 transition-colors hover:border-foreground/25 hover:bg-foreground/5">
       <Link href={`/scores/${score.id}`}>
-        <h3 className="text-lg font-semibold">{score.title}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold">{score.title}</h3>
+          <span
+            className={[
+              "rounded px-1.5 py-0.5 text-[10px] font-medium",
+              score.published
+                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                : "bg-foreground/10 text-foreground/50",
+            ].join(" ")}
+          >
+            {score.published ? "公開中" : "非公開"}
+          </span>
+        </div>
         <div className="mt-2 flex flex-wrap gap-3 text-sm text-foreground/60">
           <span>Key: {score.key_name}</span>
           {score.tempo && <span>BPM: {score.tempo}</span>}

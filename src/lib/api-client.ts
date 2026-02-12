@@ -7,7 +7,7 @@ type RequestOptions = {
   method?: string;
   body?: unknown;
   headers?: Record<string, string>;
-  requireAuth?: boolean;
+  requireAuth?: boolean | "optional";
 };
 
 async function getAuthToken(): Promise<string | null> {
@@ -30,10 +30,16 @@ export async function apiClient<T>(
 
   if (requireAuth) {
     const token = await getAuthToken();
-    if (!token) {
-      throw new Error("Authentication required but no user is signed in");
+    if (requireAuth === "optional") {
+      if (token) {
+        requestHeaders["Authorization"] = `Bearer ${token}`;
+      }
+    } else {
+      if (!token) {
+        throw new Error("Authentication required but no user is signed in");
+      }
+      requestHeaders["Authorization"] = `Bearer ${token}`;
     }
-    requestHeaders["Authorization"] = `Bearer ${token}`;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {

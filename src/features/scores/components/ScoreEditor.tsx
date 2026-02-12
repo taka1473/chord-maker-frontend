@@ -111,6 +111,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     time_signature: initialData.time_signature ?? "",
   });
 
+  const [published, setPublished] = useState(initialData.published);
   const [measures, dispatch] = useReducer(measuresReducer, []);
   const [selection, setSelection] = useState<Selection>(null);
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
@@ -266,7 +267,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   }
 
   async function handleSave() {
-    const result = await updateScore(scoreId, formData, measures);
+    const result = await updateScore(scoreId, formData, measures, published);
     if (result) {
       router.push(`/scores/${scoreId}`);
     }
@@ -478,7 +479,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
 
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
-      <div className="mt-6">
+      <div className="mt-6 flex items-center gap-4">
         <button
           type="button"
           onClick={handleSave}
@@ -487,6 +488,15 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         >
           {loading ? "保存中..." : "保存"}
         </button>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={published}
+            onChange={(e) => setPublished(e.target.checked)}
+            className="h-4 w-4 rounded border-foreground/30"
+          />
+          公開する
+        </label>
       </div>
     </div>
   );
