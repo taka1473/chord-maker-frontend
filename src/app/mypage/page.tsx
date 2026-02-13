@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AuthGuard } from "@/features/auth";
+import { AuthGuard, ProfileEditor } from "@/features/auth";
 import { MyScoreList } from "@/features/scores/components/MyScoreList";
 
 function MyPageContent() {
@@ -24,6 +24,10 @@ function MyPageContent() {
           新規作成
         </Link>
       </header>
+
+      <div className="mb-8">
+        <ProfileEditor />
+      </div>
 
       <MyScoreList />
     </div>
