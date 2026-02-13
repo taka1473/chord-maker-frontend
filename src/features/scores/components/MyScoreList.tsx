@@ -1,10 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { useMyScores } from "@/features/scores/hooks/useMyScores";
+import { useDeleteScore } from "@/features/scores/hooks/useDeleteScore";
 import type { Score } from "@/features/scores/types";
 
-function MyScoreCard({ score }: { score: Score }) {
+function MyScoreCard({
+  score,
+  onDelete,
+}: {
+  score: Score;
+  onDelete: (id: number) => void;
+}) {
   return (
     <div className="rounded-lg border border-foreground/10 p-4 transition-colors hover:border-foreground/25 hover:bg-foreground/5">
       <Link href={`/scores/${score.id}`}>
@@ -43,13 +51,36 @@ function MyScoreCard({ score }: { score: Score }) {
         >
           編集
         </Link>
+        <button
+          type="button"
+          onClick={() => onDelete(score.id)}
+          className="rounded border border-red-200 px-3 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
+        >
+          削除
+        </button>
       </div>
     </div>
   );
 }
 
 export function MyScoreList() {
-  const { scores, error, loading } = useMyScores();
+  const { scores: fetchedScores, error, loading } = useMyScores();
+  const { deleteScore } = useDeleteScore();
+  const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+
+  const scores = fetchedScores.filter((s) => !deletedIds.has(s.id));
+
+  async function handleDelete(id: number) {
+    if (!window.confirm("このスコアを削除しますか？")) return;
+    setDeleteError(null);
+    const ok = await deleteScore(id);
+    if (ok) {
+      setDeletedIds((prev) => new Set(prev).add(id));
+    } else {
+      setDeleteError("削除に失敗しました");
+    }
+  }
 
   if (loading) {
     return <p className="text-center text-foreground/60">読み込み中...</p>;
@@ -74,10 +105,15 @@ export function MyScoreList() {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {scores.map((score) => (
-        <MyScoreCard key={score.id} score={score} />
-      ))}
-    </div>
+    <>
+      {deleteError && (
+        <p className="mb-4 text-sm text-red-500">{deleteError}</p>
+      )}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {scores.map((score) => (
+          <MyScoreCard key={score.id} score={score} onDelete={handleDelete} />
+        ))}
+      </div>
+    </>
   );
 }
