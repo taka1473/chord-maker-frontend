@@ -29,6 +29,18 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
             <span>{wholeScore.time_signature}</span>
           )}
         </div>
+        {wholeScore.tag_names.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {wholeScore.tag_names.map((tag) => (
+              <span
+                key={tag}
+                className="rounded bg-foreground/10 px-2 py-0.5 text-xs text-foreground/70"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-4 border-t border-l border-foreground/20">

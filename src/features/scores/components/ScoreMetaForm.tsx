@@ -1,5 +1,6 @@
 import type { ScoreFormData } from "@/features/scores/types";
 import { KEY_NAMES, TIME_SIGNATURES } from "@/features/scores/types";
+import { TagInput } from "@/features/scores/components/TagInput";
 
 type ScoreMetaFormProps = {
   formData: ScoreFormData;
@@ -39,6 +40,14 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
           placeholder="アーティスト名を入力"
           maxLength={100}
           className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
+        />
+      </div>
+
+      <div className="sm:col-span-2">
+        <label className="mb-1 block text-sm font-medium">タグ</label>
+        <TagInput
+          tags={formData.tag_names}
+          onChange={(tag_names) => onChange({ ...formData, tag_names })}
         />
       </div>
 

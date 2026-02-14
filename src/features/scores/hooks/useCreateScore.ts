@@ -21,6 +21,7 @@ export function useCreateScore() {
             key_name: formData.key_name,
             tempo: formData.tempo ? Number(formData.tempo) : undefined,
             time_signature: formData.time_signature || undefined,
+            tag_names: formData.tag_names.length > 0 ? formData.tag_names : undefined,
           },
         },
         requireAuth: true,

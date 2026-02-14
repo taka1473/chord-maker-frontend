@@ -20,6 +20,18 @@ export function ScoreCard({ score }: ScoreCardProps) {
         {score.tempo && <span>BPM: {score.tempo}</span>}
         {score.time_signature && <span>{score.time_signature}</span>}
       </div>
+      {score.tag_names.length > 0 && (
+        <div className="mt-2 flex flex-wrap gap-1.5">
+          {score.tag_names.map((tag) => (
+            <span
+              key={tag}
+              className="rounded bg-foreground/10 px-2 py-0.5 text-xs text-foreground/70"
+            >
+              {tag}
+            </span>
+          ))}
+        </div>
+      )}
     </Link>
   );
 }

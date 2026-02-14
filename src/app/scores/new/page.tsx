@@ -18,6 +18,7 @@ function NewScoreContent() {
     key_name: "C",
     tempo: "",
     time_signature: "4/4",
+    tag_names: [],
   });
 
   async function handleSubmit(e: React.FormEvent) {

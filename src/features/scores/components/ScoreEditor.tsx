@@ -110,6 +110,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     key_name: resolveKeyName(initialData),
     tempo: initialData.tempo?.toString() ?? "",
     time_signature: initialData.time_signature ?? "",
+    tag_names: initialData.tag_names ?? [],
   });
 
   const [published, setPublished] = useState(initialData.published);

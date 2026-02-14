@@ -9,6 +9,7 @@ export type Score = {
   lyrics: string | null;
   created_at: string;
   published: boolean;
+  tag_names: string[];
 };
 
 export type Chord = {
@@ -37,6 +38,7 @@ export type WholeScore = {
   time_signature: string | null;
   lyrics: string | null;
   published: boolean;
+  tag_names: string[];
   measures: Measure[];
 };
 
@@ -104,6 +106,7 @@ export type ScoreFormData = {
   key_name: string;
   tempo: string;
   time_signature: string;
+  tag_names: string[];
 };
 
 // --- 定数 ---

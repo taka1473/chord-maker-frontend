@@ -51,6 +51,7 @@ export function useUpdateScore() {
                 tempo: formData.tempo ? Number(formData.tempo) : null,
                 time_signature: formData.time_signature || null,
                 published,
+                tag_names: formData.tag_names,
                 measures_attributes: toMeasuresAttributes(measures),
               },
             },
