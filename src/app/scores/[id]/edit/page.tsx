@@ -22,10 +22,10 @@ function EditScoreContent({ id }: { id: string }) {
       <h1 className="mb-6 text-2xl font-bold">スコアを編集</h1>
 
       {loading && (
-        <p className="text-center text-foreground/60">読み込み中...</p>
+        <p className="text-center text-muted">読み込み中...</p>
       )}
 
-      {error && <p className="text-center text-red-500">{error}</p>}
+      {error && <p className="text-center text-destructive">{error}</p>}
 
       {wholeScore && (
         <ScoreEditor scoreId={wholeScore.id} initialData={wholeScore} />

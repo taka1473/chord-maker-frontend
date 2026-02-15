@@ -48,7 +48,7 @@ export function LoginForm() {
         </h1>
 
         {error && (
-          <div className="rounded bg-red-100 p-3 text-sm text-red-700 dark:bg-red-900/30 dark:text-red-400">
+          <div className="rounded bg-destructive/10 p-3 text-sm text-destructive">
             {error}
           </div>
         )}

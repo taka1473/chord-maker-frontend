@@ -20,7 +20,7 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
         <Label>
-          タイトル <span className="text-red-500">*</span>
+          タイトル <span className="text-destructive">*</span>
         </Label>
         <Input
           type="text"
@@ -52,7 +52,7 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
 
       <div>
         <Label>
-          キー <span className="text-red-500">*</span>
+          キー <span className="text-destructive">*</span>
         </Label>
         <Select
           value={formData.key_name}

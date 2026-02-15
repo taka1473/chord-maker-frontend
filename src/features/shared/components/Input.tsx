@@ -7,7 +7,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     return (
       <input
         ref={ref}
-        className={`w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none ${className}`}
+        className={`w-full rounded border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none ${className}`}
         {...props}
       />
     );

@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 
 const variantStyles = {
-  default: "rounded-lg border border-foreground/10",
+  default: "rounded-lg border border-border bg-surface",
   interactive:
-    "rounded-lg border border-foreground/10 transition-colors hover:border-foreground/25 hover:bg-foreground/5",
+    "rounded-lg border border-border bg-surface transition-colors hover:border-primary/30 hover:bg-primary/5",
 } as const;
 
 type CardProps = {

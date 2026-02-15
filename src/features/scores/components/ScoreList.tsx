@@ -7,16 +7,16 @@ export function ScoreList() {
   const { scores, error, loading } = useScores();
 
   if (loading) {
-    return <p className="text-center text-foreground/60">読み込み中...</p>;
+    return <p className="text-center text-muted">読み込み中...</p>;
   }
 
   if (error) {
-    return <p className="text-center text-red-500">{error}</p>;
+    return <p className="text-center text-destructive">{error}</p>;
   }
 
   if (scores.length === 0) {
     return (
-      <p className="text-center text-foreground/60">
+      <p className="text-center text-muted">
         まだスコアがありません。
       </p>
     );

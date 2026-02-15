@@ -3,13 +3,13 @@ import Link from "next/link";
 
 const variantStyles = {
   primary:
-    "rounded bg-foreground text-background font-medium transition-opacity hover:opacity-90 disabled:opacity-50",
+    "rounded bg-primary text-primary-foreground font-medium transition-opacity hover:opacity-90 disabled:opacity-50",
   secondary:
-    "rounded border border-foreground/20 transition-colors hover:bg-foreground/5",
+    "rounded border border-border transition-colors hover:bg-primary/5",
   destructive:
-    "rounded border border-red-200 text-red-500 transition-colors hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20",
+    "rounded border border-destructive/30 text-destructive transition-colors hover:bg-destructive/10",
   ghost:
-    "text-foreground/60 transition-colors hover:text-foreground",
+    "text-muted transition-colors hover:text-foreground",
 } as const;
 
 const sizeStyles = {

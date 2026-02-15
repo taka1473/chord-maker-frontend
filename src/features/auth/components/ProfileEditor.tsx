@@ -25,7 +25,7 @@ export function ProfileEditor() {
   }
 
   if (loading) {
-    return <p className="text-sm text-foreground/60">読み込み中...</p>;
+    return <p className="text-sm text-muted">読み込み中...</p>;
   }
 
   const isValid = name.trim().length >= 2 && name.trim().length <= 50;
@@ -36,7 +36,7 @@ export function ProfileEditor() {
       <h2 className="mb-3 text-lg font-semibold">プロフィール</h2>
 
       {profile && !profile.handle_name_set && (
-        <p className="mb-3 text-sm text-amber-600 dark:text-amber-400">
+        <p className="mb-3 text-sm text-warning">
           名前を設定してください
         </p>
       )}
@@ -60,9 +60,9 @@ export function ProfileEditor() {
         </Button>
       </form>
 
-      {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-2 text-sm text-destructive">{error}</p>}
       {success && (
-        <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+        <p className="mt-2 text-sm text-success">
           保存しました
         </p>
       )}

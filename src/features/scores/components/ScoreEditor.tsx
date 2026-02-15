@@ -480,7 +480,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         )}
       </div>
 
-      {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+      {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
       <div className="mt-6 flex items-center gap-4">
         <Button type="button" onClick={handleSave} disabled={loading || !formData.title}>

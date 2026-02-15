@@ -23,17 +23,17 @@ function MyScoreCard({
             className={[
               "rounded px-1.5 py-0.5 text-[10px] font-medium",
               score.published
-                ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                : "bg-foreground/10 text-foreground/50",
+                ? "bg-success/15 text-success"
+                : "bg-foreground/10 text-muted",
             ].join(" ")}
           >
             {score.published ? "公開中" : "非公開"}
           </span>
         </div>
         {score.artist && (
-          <p className="mt-0.5 text-sm text-foreground/60">{score.artist}</p>
+          <p className="mt-0.5 text-sm text-muted">{score.artist}</p>
         )}
-        <div className="mt-2 flex flex-wrap gap-3 text-sm text-foreground/60">
+        <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
           <span>Key: {score.key_name}</span>
           {score.tempo && <span>BPM: {score.tempo}</span>}
           {score.time_signature && <span>{score.time_signature}</span>}
@@ -43,7 +43,7 @@ function MyScoreCard({
             {score.tag_names.map((tag) => (
               <span
                 key={tag}
-                className="rounded bg-foreground/10 px-2 py-0.5 text-xs text-foreground/70"
+                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
               >
                 {tag}
               </span>
@@ -91,16 +91,16 @@ export function MyScoreList() {
   }
 
   if (loading) {
-    return <p className="text-center text-foreground/60">読み込み中...</p>;
+    return <p className="text-center text-muted">読み込み中...</p>;
   }
 
   if (error) {
-    return <p className="text-center text-red-500">{error}</p>;
+    return <p className="text-center text-destructive">{error}</p>;
   }
 
   if (scores.length === 0) {
     return (
-      <div className="text-center text-foreground/60">
+      <div className="text-center text-muted">
         <p>まだスコアがありません。</p>
         <ButtonLink href="/scores/new" className="mt-4 inline-block">
           新規作成
@@ -112,7 +112,7 @@ export function MyScoreList() {
   return (
     <>
       {deleteError && (
-        <p className="mb-4 text-sm text-red-500">{deleteError}</p>
+        <p className="mb-4 text-sm text-destructive">{deleteError}</p>
       )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {scores.map((score) => (

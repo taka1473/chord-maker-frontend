@@ -40,7 +40,7 @@ function NewScoreContent() {
       <form onSubmit={handleSubmit}>
         <ScoreMetaForm formData={formData} onChange={setFormData} />
 
-        {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
+        {error && <p className="mt-4 text-sm text-destructive">{error}</p>}
 
         <div className="mt-6">
           <Button type="submit" disabled={loading || !formData.title}>

@@ -12,9 +12,9 @@ export function ScoreCard({ score }: ScoreCardProps) {
       <Link href={`/scores/${score.id}`} className="block p-4">
         <h3 className="text-lg font-semibold">{score.title}</h3>
         {score.artist && (
-          <p className="mt-0.5 text-sm text-foreground/60">{score.artist}</p>
+          <p className="mt-0.5 text-sm text-muted">{score.artist}</p>
         )}
-        <div className="mt-2 flex flex-wrap gap-3 text-sm text-foreground/60">
+        <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
           <span>Key: {score.key_name}</span>
           {score.tempo && <span>BPM: {score.tempo}</span>}
           {score.time_signature && <span>{score.time_signature}</span>}
@@ -24,7 +24,7 @@ export function ScoreCard({ score }: ScoreCardProps) {
             {score.tag_names.map((tag) => (
               <span
                 key={tag}
-                className="rounded bg-foreground/10 px-2 py-0.5 text-xs text-foreground/70"
+                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
               >
                 {tag}
               </span>

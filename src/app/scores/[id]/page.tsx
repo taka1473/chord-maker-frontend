@@ -21,10 +21,10 @@ export default function ScoreDetailPage({
       </ButtonLink>
 
       {loading && (
-        <p className="text-center text-foreground/60">読み込み中...</p>
+        <p className="text-center text-muted">読み込み中...</p>
       )}
 
-      {error && <p className="text-center text-red-500">{error}</p>}
+      {error && <p className="text-center text-destructive">{error}</p>}
 
       {wholeScore && (
         <>

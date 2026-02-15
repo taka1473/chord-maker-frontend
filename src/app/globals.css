@@ -1,21 +1,57 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #fafafa;
+  --foreground: #2d3436;
+  --surface: #ffffff;
+  --primary: #6c5ce7;
+  --primary-foreground: #ffffff;
+  --secondary: #00cec9;
+  --secondary-foreground: #ffffff;
+  --accent: #fd79a8;
+  --destructive: #ff6b6b;
+  --destructive-foreground: #ffffff;
+  --success: #00b894;
+  --warning: #fdcb6e;
+  --muted: #636e72;
+  --border: #dfe6e9;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-accent: var(--accent);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1a1a2e;
+    --foreground: #f0f0f0;
+    --surface: #232340;
+    --primary: #a29bfe;
+    --primary-foreground: #1a1a2e;
+    --secondary: #81ecec;
+    --secondary-foreground: #1a1a2e;
+    --accent: #fda7c9;
+    --destructive: #ff8787;
+    --destructive-foreground: #1a1a2e;
+    --success: #55efc4;
+    --warning: #ffeaa7;
+    --muted: #a0a0b0;
+    --border: #3a3a55;
   }
 }
 
