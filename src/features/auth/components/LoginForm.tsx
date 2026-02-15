@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/contexts/AuthContext";
 import { useSignIn } from "@/features/auth/hooks/useSignIn";
 import { useSignUp } from "@/features/auth/hooks/useSignUp";
+import { Button, Card, Input, Label } from "@/features/shared";
 
 export function LoginForm() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -41,7 +42,7 @@ export function LoginForm() {
 
   return (
     <div className="flex min-h-screen items-center justify-center">
-      <div className="w-full max-w-md space-y-8 rounded-lg border border-foreground/10 p-8">
+      <Card className="w-full max-w-md space-y-8 p-8">
         <h1 className="text-center text-2xl font-bold">
           {isSignUp ? "アカウント作成" : "ログイン"}
         </h1>
@@ -54,45 +55,37 @@ export function LoginForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium">
-              メールアドレス
-            </label>
-            <input
+            <Label htmlFor="email">メールアドレス</Label>
+            <Input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="mt-1 w-full rounded border border-foreground/20 bg-background px-3 py-2"
+              className="mt-1"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium">
-              パスワード
-            </label>
-            <input
+            <Label htmlFor="password">パスワード</Label>
+            <Input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               minLength={6}
-              className="mt-1 w-full rounded border border-foreground/20 bg-background px-3 py-2"
+              className="mt-1"
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full rounded bg-foreground px-4 py-2 text-background hover:opacity-90 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={loading} className="w-full">
             {loading
               ? "処理中..."
               : isSignUp
                 ? "アカウント作成"
                 : "ログイン"}
-          </button>
+          </Button>
         </form>
 
         <div className="relative">
@@ -104,13 +97,14 @@ export function LoginForm() {
           </div>
         </div>
 
-        <button
+        <Button
+          variant="secondary"
           onClick={signInWithGoogle}
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded border border-foreground/20 px-4 py-2 hover:bg-foreground/5 disabled:opacity-50"
+          className="flex w-full items-center justify-center gap-2"
         >
           Google でログイン
-        </button>
+        </Button>
 
         <p className="text-center text-sm text-foreground/60">
           {isSignUp ? "すでにアカウントをお持ちですか？" : "アカウントをお持ちでないですか？"}{" "}
@@ -121,7 +115,7 @@ export function LoginForm() {
             {isSignUp ? "ログイン" : "アカウント作成"}
           </button>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

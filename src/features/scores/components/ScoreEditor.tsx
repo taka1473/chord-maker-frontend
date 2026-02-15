@@ -16,6 +16,7 @@ import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
+import { Button } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
 
@@ -482,14 +483,9 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
       <div className="mt-6 flex items-center gap-4">
-        <button
-          type="button"
-          onClick={handleSave}
-          disabled={loading || !formData.title}
-          className="rounded bg-foreground px-6 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
+        <Button type="button" onClick={handleSave} disabled={loading || !formData.title}>
           {loading ? "保存中..." : "保存"}
-        </button>
+        </Button>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

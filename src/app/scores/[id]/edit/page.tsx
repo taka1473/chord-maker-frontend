@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import Link from "next/link";
 import { AuthGuard } from "@/features/auth";
+import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ScoreEditor } from "@/features/scores/components/ScoreEditor";
 
@@ -11,12 +11,13 @@ function EditScoreContent({ id }: { id: string }) {
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <Link
+      <ButtonLink
         href={`/scores/${id}`}
-        className="mb-6 inline-block text-sm text-foreground/60 transition-colors hover:text-foreground"
+        variant="ghost"
+        className="mb-6 inline-block"
       >
         &larr; 詳細に戻る
-      </Link>
+      </ButtonLink>
 
       <h1 className="mb-6 text-2xl font-bold">スコアを編集</h1>
 

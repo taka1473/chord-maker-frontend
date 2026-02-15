@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useAuth, useSignOut } from "@/features/auth";
 import { ScoreList } from "@/features/scores";
+import { Button, ButtonLink } from "@/features/shared";
 
 export default function Home() {
   const { user } = useAuth();
@@ -15,32 +15,18 @@ export default function Home() {
         <nav className="flex items-center gap-3">
           {user ? (
             <>
-              <Link
-                href="/mypage"
-                className="rounded border border-foreground/20 px-4 py-2 text-sm transition-colors hover:bg-foreground/5"
-              >
+              <ButtonLink href="/mypage" variant="secondary">
                 マイページ
-              </Link>
-              <Link
-                href="/scores/new"
-                className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-              >
-                新規作成
-              </Link>
-              <button
-                onClick={signOut}
-                className="rounded border border-foreground/20 px-4 py-2 text-sm transition-colors hover:bg-foreground/5"
-              >
+              </ButtonLink>
+              <ButtonLink href="/scores/new">新規作成</ButtonLink>
+              <Button variant="secondary" onClick={signOut}>
                 ログアウト
-              </button>
+              </Button>
             </>
           ) : (
-            <Link
-              href="/login"
-              className="rounded border border-foreground/20 px-4 py-2 text-sm transition-colors hover:bg-foreground/5"
-            >
+            <ButtonLink href="/login" variant="secondary">
               ログイン
-            </Link>
+            </ButtonLink>
           )}
         </nav>
       </header>

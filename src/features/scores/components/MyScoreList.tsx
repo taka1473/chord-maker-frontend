@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMyScores } from "@/features/scores/hooks/useMyScores";
 import { useDeleteScore } from "@/features/scores/hooks/useDeleteScore";
 import type { Score } from "@/features/scores/types";
+import { Button, ButtonLink, Card } from "@/features/shared";
 
 function MyScoreCard({
   score,
@@ -14,7 +15,7 @@ function MyScoreCard({
   onDelete: (id: number) => void;
 }) {
   return (
-    <div className="rounded-lg border border-foreground/10 p-4 transition-colors hover:border-foreground/25 hover:bg-foreground/5">
+    <Card variant="interactive" className="p-4">
       <Link href={`/scores/${score.id}`}>
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">{score.title}</h3>
@@ -51,27 +52,22 @@ function MyScoreCard({
         )}
       </Link>
       <div className="mt-3 flex gap-2">
-        <Link
-          href={`/scores/${score.id}`}
-          className="rounded border border-foreground/20 px-3 py-1 text-xs text-foreground/60 transition-colors hover:bg-foreground/5"
-        >
+        <ButtonLink href={`/scores/${score.id}`} variant="secondary" size="sm">
           閲覧
-        </Link>
-        <Link
-          href={`/scores/${score.id}/edit`}
-          className="rounded border border-foreground/20 px-3 py-1 text-xs text-foreground/60 transition-colors hover:bg-foreground/5"
-        >
+        </ButtonLink>
+        <ButtonLink href={`/scores/${score.id}/edit`} variant="secondary" size="sm">
           編集
-        </Link>
-        <button
+        </ButtonLink>
+        <Button
+          variant="destructive"
+          size="sm"
           type="button"
           onClick={() => onDelete(score.id)}
-          className="rounded border border-red-200 px-3 py-1 text-xs text-red-500 transition-colors hover:bg-red-50 dark:border-red-800 dark:hover:bg-red-900/20"
         >
           削除
-        </button>
+        </Button>
       </div>
-    </div>
+    </Card>
   );
 }
 
@@ -106,12 +102,9 @@ export function MyScoreList() {
     return (
       <div className="text-center text-foreground/60">
         <p>まだスコアがありません。</p>
-        <Link
-          href="/scores/new"
-          className="mt-4 inline-block rounded bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-        >
+        <ButtonLink href="/scores/new" className="mt-4 inline-block">
           新規作成
-        </Link>
+        </ButtonLink>
       </div>
     );
   }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useProfile } from "@/features/auth/hooks/useProfile";
+import { Button, Card, Input, Label } from "@/features/shared";
 
 export function ProfileEditor() {
   const { profile, error, loading, updating, updateName } = useProfile();
@@ -31,7 +32,7 @@ export function ProfileEditor() {
   const hasChanges = profile && name.trim() !== profile.name;
 
   return (
-    <div className="rounded-lg border border-foreground/10 p-4">
+    <Card className="p-4">
       <h2 className="mb-3 text-lg font-semibold">プロフィール</h2>
 
       {profile && !profile.handle_name_set && (
@@ -42,8 +43,8 @@ export function ProfileEditor() {
 
       <form onSubmit={handleSubmit} className="flex items-end gap-3">
         <div className="flex-1">
-          <label className="mb-1 block text-sm font-medium">名前</label>
-          <input
+          <Label>名前</Label>
+          <Input
             type="text"
             value={name}
             onChange={(e) => {
@@ -52,16 +53,11 @@ export function ProfileEditor() {
             }}
             minLength={2}
             maxLength={50}
-            className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
           />
         </div>
-        <button
-          type="submit"
-          disabled={updating || !isValid || !hasChanges}
-          className="rounded bg-foreground px-4 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-        >
+        <Button type="submit" disabled={updating || !isValid || !hasChanges}>
           {updating ? "保存中..." : "保存"}
-        </button>
+        </Button>
       </form>
 
       {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
@@ -70,6 +66,6 @@ export function ProfileEditor() {
           保存しました
         </p>
       )}
-    </div>
+    </Card>
   );
 }

@@ -1,6 +1,7 @@
 import type { ScoreFormData } from "@/features/scores/types";
 import { KEY_NAMES, TIME_SIGNATURES } from "@/features/scores/types";
 import { TagInput } from "@/features/scores/components/TagInput";
+import { Input, Select, Label } from "@/features/shared";
 
 type ScoreMetaFormProps = {
   formData: ScoreFormData;
@@ -18,33 +19,31 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="sm:col-span-2">
-        <label className="mb-1 block text-sm font-medium">
+        <Label>
           タイトル <span className="text-red-500">*</span>
-        </label>
-        <input
+        </Label>
+        <Input
           type="text"
           value={formData.title}
           onChange={(e) => handleChange("title", e.target.value)}
           placeholder="曲名を入力"
           maxLength={100}
-          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
         />
       </div>
 
       <div className="sm:col-span-2">
-        <label className="mb-1 block text-sm font-medium">アーティスト</label>
-        <input
+        <Label>アーティスト</Label>
+        <Input
           type="text"
           value={formData.artist}
           onChange={(e) => handleChange("artist", e.target.value)}
           placeholder="アーティスト名を入力"
           maxLength={100}
-          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
         />
       </div>
 
       <div className="sm:col-span-2">
-        <label className="mb-1 block text-sm font-medium">タグ</label>
+        <Label>タグ</Label>
         <TagInput
           tags={formData.tag_names}
           onChange={(tag_names) => onChange({ ...formData, tag_names })}
@@ -52,28 +51,26 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">
+        <Label>
           キー <span className="text-red-500">*</span>
-        </label>
-        <select
+        </Label>
+        <Select
           value={formData.key_name}
           onChange={(e) => handleChange("key_name", e.target.value)}
-          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
         >
           {KEY_NAMES.map((key) => (
             <option key={key} value={key}>
               {key}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">拍子</label>
-        <select
+        <Label>拍子</Label>
+        <Select
           value={formData.time_signature}
           onChange={(e) => handleChange("time_signature", e.target.value)}
-          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
         >
           <option value="">未設定</option>
           {TIME_SIGNATURES.map((ts) => (
@@ -81,19 +78,18 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
               {ts}
             </option>
           ))}
-        </select>
+        </Select>
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium">テンポ (BPM)</label>
-        <input
+        <Label>テンポ (BPM)</Label>
+        <Input
           type="number"
           value={formData.tempo}
           onChange={(e) => handleChange("tempo", e.target.value)}
           placeholder="120"
           min={1}
           max={499}
-          className="w-full rounded border border-foreground/20 bg-background px-3 py-2 text-sm focus:border-foreground/40 focus:outline-none"
         />
       </div>
     </div>

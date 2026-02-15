@@ -1,8 +1,8 @@
 "use client";
 
 import { use } from "react";
-import Link from "next/link";
 import { useAuth } from "@/features/auth";
+import { ButtonLink } from "@/features/shared";
 import { useWholeScore, ChordChart } from "@/features/scores";
 
 export default function ScoreDetailPage({
@@ -16,12 +16,9 @@ export default function ScoreDetailPage({
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
-      <Link
-        href="/"
-        className="mb-6 inline-block text-sm text-foreground/60 transition-colors hover:text-foreground"
-      >
+      <ButtonLink href="/" variant="ghost" className="mb-6 inline-block">
         &larr; スコア一覧に戻る
-      </Link>
+      </ButtonLink>
 
       {loading && (
         <p className="text-center text-foreground/60">読み込み中...</p>
@@ -34,12 +31,9 @@ export default function ScoreDetailPage({
           <ChordChart wholeScore={wholeScore} />
           {user && (
             <div className="mt-6">
-              <Link
-                href={`/scores/${id}/edit`}
-                className="rounded bg-foreground px-6 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90"
-              >
+              <ButtonLink href={`/scores/${id}/edit`}>
                 編集
-              </Link>
+              </ButtonLink>
             </div>
           )}
         </>

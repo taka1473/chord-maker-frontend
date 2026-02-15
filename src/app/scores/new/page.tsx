@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { AuthGuard } from "@/features/auth";
+import { Button, ButtonLink } from "@/features/shared";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { useCreateScore } from "@/features/scores/hooks/useCreateScore";
 import type { ScoreFormData } from "@/features/scores/types";
@@ -31,12 +31,9 @@ function NewScoreContent() {
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-8">
-      <Link
-        href="/"
-        className="mb-6 inline-block text-sm text-foreground/60 transition-colors hover:text-foreground"
-      >
+      <ButtonLink href="/" variant="ghost" className="mb-6 inline-block">
         &larr; スコア一覧に戻る
-      </Link>
+      </ButtonLink>
 
       <h1 className="mb-6 text-2xl font-bold">新しいスコアを作成</h1>
 
@@ -46,13 +43,9 @@ function NewScoreContent() {
         {error && <p className="mt-4 text-sm text-red-500">{error}</p>}
 
         <div className="mt-6">
-          <button
-            type="submit"
-            disabled={loading || !formData.title}
-            className="rounded bg-foreground px-6 py-2 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
+          <Button type="submit" disabled={loading || !formData.title}>
             {loading ? "作成中..." : "作成してコード譜を編集"}
-          </button>
+          </Button>
         </div>
       </form>
     </div>
