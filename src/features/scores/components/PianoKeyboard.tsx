@@ -52,8 +52,8 @@ export function PianoKeyboard({
               "border border-foreground/20 rounded-b transition-colors",
               i > 0 ? "-ml-px" : "",
               isSelected
-                ? "bg-blue-500 text-white border-blue-500 z-[5] font-bold"
-                : "bg-background hover:bg-foreground/5",
+                ? "bg-primary text-primary-foreground border-primary z-[5] font-bold"
+                : "bg-background hover:bg-primary/5",
             ].join(" ")}
           >
             {getNoteName(offset, scoreKey, useFlats)}
@@ -77,7 +77,7 @@ export function PianoKeyboard({
               fontSize,
               "rounded-b z-10 transition-colors",
               isSelected
-                ? "bg-blue-500 text-white font-bold"
+                ? "bg-primary text-primary-foreground font-bold"
                 : "bg-foreground text-background hover:bg-foreground/80",
             ].join(" ")}
             style={{

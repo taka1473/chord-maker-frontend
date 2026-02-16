@@ -63,7 +63,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
             >
               {measure.key_name && (
                 <div className="mb-1">
-                  <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+                  <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
                     Key: {measure.key_name}
                   </span>
                 </div>

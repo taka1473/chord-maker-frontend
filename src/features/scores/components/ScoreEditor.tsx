@@ -26,7 +26,7 @@ function BarLine({ onClick, onPaste, hasClipboard, isSelected }: { onClick: () =
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className={[
         "h-full w-px transition-all",
-        isSelected ? "w-0.5 bg-blue-500" : "bg-foreground/30 group-hover:w-0.5 group-hover:bg-blue-500",
+        isSelected ? "w-0.5 bg-primary" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
       ].join(" ")} />
       <div className={[
         "absolute flex-col gap-1",
@@ -35,7 +35,7 @@ function BarLine({ onClick, onPaste, hasClipboard, isSelected }: { onClick: () =
         <button
           type="button"
           onClick={onClick}
-          className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-blue-500 text-[10px] text-white shadow hover:bg-blue-600"
+          className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow hover:opacity-90"
           title="小節を挿入"
         >
           +
@@ -44,7 +44,7 @@ function BarLine({ onClick, onPaste, hasClipboard, isSelected }: { onClick: () =
           <button
             type="button"
             onClick={onPaste}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-green-500 text-[10px] text-white shadow hover:bg-green-600"
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-secondary text-[10px] text-secondary-foreground shadow hover:opacity-90"
             title="コピーした小節をペースト"
           >
             ⎘
@@ -340,7 +340,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                   const ek = effectiveKeys.get(measure.tempId);
                   return (
                     <Fragment key={measure.tempId}>
-                      <div className="min-h-[60px] flex-1 border-b border-foreground/15">
+                      <div className="min-h-[60px] flex-1 border-b border-border">
                         <MeasureEditor
                           measure={measure}
                           measureIndex={globalIndex}
@@ -397,7 +397,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                 dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
                 setSelection({ type: "chord", measureTempId, chordTempId });
               }}
-              className="rounded border border-dashed border-foreground/20 px-4 py-2 text-sm text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
+              className="rounded border border-dashed border-border px-4 py-2 text-sm text-muted transition-colors hover:border-primary/30 hover:text-foreground"
             >
               + 小節追加
             </button>
@@ -410,11 +410,11 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
             <button
               type="button"
               onClick={() => handleNavigate("left")}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/20 text-sm text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
             >
               ◀
             </button>
-            <span className="text-xs text-foreground/40">
+            <span className="text-xs text-muted">
               {!selection && "タップで選択"}
               {selection?.type === "chord" && "コード選択中"}
               {selection?.type === "chord_gap" && "コード挿入位置"}
@@ -423,7 +423,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
             <button
               type="button"
               onClick={() => handleNavigate("right")}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-foreground/20 text-sm text-foreground/60 transition-colors hover:bg-foreground/5 hover:text-foreground active:bg-foreground/10"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
             >
               ▶
             </button>
@@ -441,11 +441,11 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         )}
 
         {selection?.type === "chord_gap" && (
-          <div className="mt-4 flex items-center justify-center rounded-lg border border-dashed border-foreground/20 py-6">
+          <div className="mt-4 flex items-center justify-center rounded-lg border border-dashed border-border py-6">
             <button
               type="button"
               onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
-              className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               + コードを挿入
             </button>
@@ -453,11 +453,11 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         )}
 
         {selection?.type === "bar_line" && (
-          <div className="mt-4 flex items-center justify-center gap-3 rounded-lg border border-dashed border-foreground/20 py-6">
+          <div className="mt-4 flex items-center justify-center gap-3 rounded-lg border border-dashed border-border py-6">
             <button
               type="button"
               onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
-              className="rounded bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
             >
               + 小節を挿入
             </button>
@@ -465,7 +465,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
               <button
                 type="button"
                 onClick={() => handlePasteMeasure(selection.afterMeasureTempId)}
-                className="rounded bg-green-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+                className="rounded bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-opacity hover:opacity-90"
               >
                 ペースト
               </button>
@@ -474,7 +474,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
         )}
 
         {!selection && visibleMeasures.length > 0 && (
-          <div className="mt-4 rounded-lg border border-dashed border-foreground/20 py-6 text-center text-sm text-foreground/40">
+          <div className="mt-4 rounded-lg border border-dashed border-border py-6 text-center text-sm text-muted">
             コードを選択するか、◀ ▶ で移動してください
           </div>
         )}
@@ -491,7 +491,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
             type="checkbox"
             checked={published}
             onChange={(e) => setPublished(e.target.checked)}
-            className="h-4 w-4 rounded border-foreground/30"
+            className="h-4 w-4 rounded border-border"
           />
           公開する
         </label>

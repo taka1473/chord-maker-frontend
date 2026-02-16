@@ -31,10 +31,10 @@ function ChordGap({ onClick, isSelected }: { onClick: () => void; isSelected?: b
     >
       <div className={[
         "h-full w-px transition-all",
-        isSelected ? "w-0.5 bg-blue-500" : "bg-transparent group-hover:bg-blue-500",
+        isSelected ? "w-0.5 bg-primary" : "bg-transparent group-hover:bg-primary",
       ].join(" ")} />
       <span className={[
-        "absolute h-4 w-4 items-center justify-center rounded-full bg-blue-500 text-[9px] text-white shadow",
+        "absolute h-4 w-4 items-center justify-center rounded-full bg-primary text-[9px] text-primary-foreground shadow",
         isSelected ? "flex" : "hidden group-hover:flex",
       ].join(" ")}>
         +
@@ -67,18 +67,18 @@ export function MeasureEditor({
     <div className="p-2">
       <div className="mb-1.5 flex items-center justify-between">
         <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-foreground/40">
+          <span className="text-xs font-medium text-muted">
             {measureIndex + 1}
           </span>
           {measure.key_name ? (
             <span className="flex items-center gap-1">
-              <span className="rounded bg-purple-500/15 px-1.5 py-0.5 text-[10px] font-medium text-purple-600 dark:text-purple-400">
+              <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
                 Key: {measure.key_name}
               </span>
               <button
                 type="button"
                 onClick={() => onSetKey(null)}
-                className="text-[10px] text-red-500 hover:text-red-700"
+                className="text-[10px] text-destructive hover:opacity-80"
                 title="転調を解除"
               >
                 ×
@@ -88,7 +88,7 @@ export function MeasureEditor({
             <>
               {showKeySelect ? (
                 <select
-                  className="rounded border border-foreground/20 bg-background px-1 py-0.5 text-[10px]"
+                  className="rounded border border-border bg-background px-1 py-0.5 text-[10px]"
                   value=""
                   onChange={(e) => {
                     onSetKey(e.target.value || null);
@@ -106,7 +106,7 @@ export function MeasureEditor({
                 <button
                   type="button"
                   onClick={() => setShowKeySelect(true)}
-                  className="rounded px-1 py-0.5 text-[10px] text-foreground/30 transition-colors hover:bg-foreground/5 hover:text-foreground/60"
+                  className="rounded px-1 py-0.5 text-[10px] text-muted transition-colors hover:bg-primary/5 hover:text-foreground"
                   title="転調を設定"
                 >
                   転調
@@ -119,7 +119,7 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onCopy}
-            className="rounded px-1.5 py-0.5 text-[10px] text-foreground/40 transition-colors hover:bg-foreground/5 hover:text-foreground/70"
+            className="rounded px-1.5 py-0.5 text-[10px] text-muted transition-colors hover:bg-primary/5 hover:text-foreground"
             title="小節をコピー"
           >
             コピー
@@ -128,7 +128,7 @@ export function MeasureEditor({
             <button
               type="button"
               onClick={onPaste}
-              className="rounded px-1.5 py-0.5 text-[10px] text-green-600 transition-colors hover:bg-green-500/10 dark:text-green-400"
+              className="rounded px-1.5 py-0.5 text-[10px] text-secondary transition-colors hover:bg-secondary/10"
               title="この小節の後にペースト"
             >
               ペースト
@@ -137,7 +137,7 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onRemoveMeasure}
-            className="rounded px-1.5 py-0.5 text-[10px] text-red-500 transition-colors hover:bg-red-500/10"
+            className="rounded px-1.5 py-0.5 text-[10px] text-destructive transition-colors hover:bg-destructive/10"
           >
             削除
           </button>
@@ -166,7 +166,7 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onAddChord}
-            className="rounded border border-dashed border-foreground/20 px-3 py-1 text-xs text-foreground/50 transition-colors hover:border-foreground/40 hover:text-foreground/80"
+            className="rounded border border-dashed border-border px-3 py-1 text-xs text-muted transition-colors hover:border-primary/30 hover:text-foreground"
           >
             + コード追加
           </button>

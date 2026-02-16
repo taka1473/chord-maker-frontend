@@ -30,8 +30,8 @@ export function ChordInputPanel({
 
   if (!chord) {
     return (
-      <div className="mt-4 rounded-lg border border-foreground/15 p-4">
-        <p className="text-center text-sm text-foreground/40">
+      <div className="mt-4 rounded-lg border border-border p-4">
+        <p className="text-center text-sm text-muted">
           コードを選択してください
         </p>
       </div>
@@ -56,7 +56,7 @@ export function ChordInputPanel({
   const isBassSet = chord.root_offset !== chord.bass_offset;
 
   return (
-    <div className="mt-4 rounded-lg border border-foreground/15 p-4">
+    <div className="mt-4 rounded-lg border border-border p-4">
       <div className="mb-4 text-center font-mono text-xl font-bold">
         {formatChord(chord, scoreKey, useFlats)}
       </div>
@@ -81,14 +81,14 @@ export function ChordInputPanel({
             className={[
               "rounded px-2 py-0.5 text-xs font-medium transition-colors",
               noteMode === "bass"
-                ? "bg-blue-500 text-white"
-                : "border border-foreground/20 text-foreground/50 hover:border-foreground/40 hover:text-foreground/80",
+                ? "bg-primary text-primary-foreground"
+                : "border border-border text-muted hover:border-primary/30 hover:text-foreground",
             ].join(" ")}
           >
             on
           </button>
           {noteMode === "bass" && (
-            <span className="text-xs text-blue-500">
+            <span className="text-xs text-primary">
               ベース音を選択...
             </span>
           )}
@@ -96,7 +96,7 @@ export function ChordInputPanel({
             <button
               type="button"
               onClick={() => onUpdateField("bass_offset", chord.root_offset)}
-              className="rounded px-1.5 py-0.5 text-[10px] text-red-500 transition-colors hover:bg-red-500/10"
+              className="rounded px-1.5 py-0.5 text-[10px] text-destructive transition-colors hover:bg-destructive/10"
               title="ベース音をリセット"
             >
               on 解除
@@ -112,7 +112,7 @@ export function ChordInputPanel({
       </div>
 
       <div>
-        <label className="mb-1.5 block text-xs font-medium text-foreground/60">
+        <label className="mb-1.5 block text-xs font-medium text-muted">
           コードタイプ
         </label>
         <ChordTypeSelector

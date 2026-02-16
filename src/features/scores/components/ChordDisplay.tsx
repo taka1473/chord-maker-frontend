@@ -26,8 +26,8 @@ export function ChordDisplay({
         className={[
           "rounded px-3 py-1.5 text-sm font-mono transition-colors",
           isSelected
-            ? "bg-blue-500/10 text-blue-600 ring-2 ring-blue-500 dark:text-blue-400"
-            : "border border-foreground/20 hover:border-foreground/40",
+            ? "bg-primary/10 text-primary ring-2 ring-primary"
+            : "border border-border hover:border-primary/30",
         ].join(" ")}
       >
         {formatChord(chord, scoreKey, useFlats)}
@@ -38,7 +38,7 @@ export function ChordDisplay({
           e.stopPropagation();
           onRemove();
         }}
-        className="absolute -top-1.5 -right-1.5 hidden h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] leading-none text-white group-hover:flex"
+        className="absolute -top-1.5 -right-1.5 hidden h-4 w-4 items-center justify-center rounded-full bg-destructive text-[10px] leading-none text-destructive-foreground group-hover:flex"
         title="コードを削除"
       >
         &times;
