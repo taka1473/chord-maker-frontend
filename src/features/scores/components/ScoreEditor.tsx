@@ -16,6 +16,7 @@ import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
+import { useColumnsPerRow } from "@/features/scores/hooks/useColumnsPerRow";
 import { Button } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
@@ -104,6 +105,7 @@ function resolveKeyName(ws: WholeScore): string {
 export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   const router = useRouter();
   const { updateScore, error, loading } = useUpdateScore();
+  const cols = useColumnsPerRow();
 
   const [formData, setFormData] = useState<ScoreFormData>({
     title: initialData.title,
@@ -295,10 +297,10 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
     return effectiveKeys.get(selection.measureTempId) ?? { scoreKey, useFlats };
   }, [selection, effectiveKeys, scoreKey, useFlats]);
 
-  // Split visible measures into rows of 4 for bar-line layout
+  // Split visible measures into rows for bar-line layout
   const rows: EditableMeasure[][] = [];
-  for (let i = 0; i < visibleMeasures.length; i += 4) {
-    rows.push(visibleMeasures.slice(i, i + 4));
+  for (let i = 0; i < visibleMeasures.length; i += cols) {
+    rows.push(visibleMeasures.slice(i, i + cols));
   }
 
   return (
@@ -336,7 +338,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
                 })()}
 
                 {row.map((measure, colIdx) => {
-                  const globalIndex = rowIdx * 4 + colIdx;
+                  const globalIndex = rowIdx * cols + colIdx;
                   const ek = effectiveKeys.get(measure.tempId);
                   return (
                     <Fragment key={measure.tempId}>

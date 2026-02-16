@@ -13,7 +13,7 @@ export function AppHeader() {
         <ButtonLink href="/" variant="ghost" className="text-lg font-bold text-foreground">
           Chord Maker
         </ButtonLink>
-        <nav className="flex items-center gap-3">
+        <nav className="flex items-center gap-1.5 sm:gap-3">
           {user ? (
             <>
               <ButtonLink href="/mypage" variant="secondary" size="sm">

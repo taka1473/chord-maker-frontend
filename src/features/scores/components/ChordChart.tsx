@@ -43,7 +43,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-4 border-t border-l border-border">
+      <div className="grid grid-cols-1 border-t border-l border-border sm:grid-cols-2 lg:grid-cols-4">
         {sortedMeasures.map((measure) => {
           if (measure.key_name && measure.key != null) {
             currentKey = measure.key;
