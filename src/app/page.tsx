@@ -11,7 +11,7 @@ export default function Home() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <header className="mb-8 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Chord Maker</h1>
+        <h1 className="text-3xl font-bold">Chord Maker</h1>
         <nav className="flex items-center gap-3">
           {user ? (
             <>

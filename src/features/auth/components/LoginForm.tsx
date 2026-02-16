@@ -43,7 +43,7 @@ export function LoginForm() {
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md space-y-8 p-8">
-        <h1 className="text-center text-2xl font-bold">
+        <h1 className="text-center text-3xl font-bold">
           {isSignUp ? "アカウント作成" : "ログイン"}
         </h1>
 
@@ -90,10 +90,10 @@ export function LoginForm() {
 
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-foreground/10" />
+            <div className="w-full border-t border-border" />
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="bg-background px-2 text-foreground/60">または</span>
+            <span className="bg-background px-2 text-muted">または</span>
           </div>
         </div>
 
@@ -106,7 +106,7 @@ export function LoginForm() {
           Google でログイン
         </Button>
 
-        <p className="text-center text-sm text-foreground/60">
+        <p className="text-center text-sm text-muted">
           {isSignUp ? "すでにアカウントをお持ちですか？" : "アカウントをお持ちでないですか？"}{" "}
           <button
             onClick={() => setIsSignUp(!isSignUp)}

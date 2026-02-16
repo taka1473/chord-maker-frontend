@@ -18,11 +18,11 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
   return (
     <div>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">{wholeScore.title}</h1>
+        <h1 className="text-3xl font-bold">{wholeScore.title}</h1>
         {wholeScore.artist && (
-          <p className="mt-1 text-sm text-foreground/60">{wholeScore.artist}</p>
+          <p className="mt-1 text-sm text-muted">{wholeScore.artist}</p>
         )}
-        <div className="mt-2 flex flex-wrap gap-4 text-sm text-foreground/60">
+        <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted">
           <span>Key: {wholeScore.key_name}</span>
           {wholeScore.tempo && <span>BPM: {wholeScore.tempo}</span>}
           {wholeScore.time_signature && (
@@ -34,7 +34,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
             {wholeScore.tag_names.map((tag) => (
               <span
                 key={tag}
-                className="rounded bg-foreground/10 px-2 py-0.5 text-xs text-foreground/70"
+                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
               >
                 {tag}
               </span>
@@ -43,7 +43,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-4 border-t border-l border-foreground/20">
+      <div className="grid grid-cols-4 border-t border-l border-border">
         {sortedMeasures.map((measure) => {
           if (measure.key_name && measure.key != null) {
             currentKey = measure.key;
@@ -59,7 +59,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
           return (
             <div
               key={measure.id}
-              className="min-h-16 border-r border-b border-foreground/20 p-2"
+              className="min-h-16 border-r border-b border-border p-2"
             >
               {measure.key_name && (
                 <div className="mb-1">

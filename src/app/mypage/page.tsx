@@ -12,7 +12,7 @@ function MyPageContent() {
           <ButtonLink href="/" variant="ghost">
             ← トップ
           </ButtonLink>
-          <h1 className="text-2xl font-bold">マイページ</h1>
+          <h1 className="text-3xl font-bold">マイページ</h1>
         </div>
         <ButtonLink href="/scores/new">新規作成</ButtonLink>
       </header>

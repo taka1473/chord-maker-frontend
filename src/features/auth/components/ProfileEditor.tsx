@@ -33,7 +33,7 @@ export function ProfileEditor() {
 
   return (
     <Card className="p-4">
-      <h2 className="mb-3 text-lg font-semibold">プロフィール</h2>
+      <h2 className="mb-3 text-xl font-semibold">プロフィール</h2>
 
       {profile && !profile.handle_name_set && (
         <p className="mb-3 text-sm text-warning">

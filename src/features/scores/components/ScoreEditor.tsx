@@ -306,7 +306,7 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
       <ScoreMetaForm formData={formData} onChange={setFormData} />
 
       <div className="mt-6">
-        <h2 className="mb-3 text-lg font-semibold">コード譜</h2>
+        <h2 className="mb-3 text-xl font-semibold">コード譜</h2>
 
         {rows.length > 0 ? (
           <div className="space-y-0">

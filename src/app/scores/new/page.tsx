@@ -35,7 +35,7 @@ function NewScoreContent() {
         &larr; スコア一覧に戻る
       </ButtonLink>
 
-      <h1 className="mb-6 text-2xl font-bold">新しいスコアを作成</h1>
+      <h1 className="mb-6 text-3xl font-bold">新しいスコアを作成</h1>
 
       <form onSubmit={handleSubmit}>
         <ScoreMetaForm formData={formData} onChange={setFormData} />
