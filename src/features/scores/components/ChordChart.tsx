@@ -1,3 +1,5 @@
+"use client";
+
 import type { WholeScore } from "@/features/scores/types";
 import { formatChord, isFlatKey } from "@/features/scores/types";
 
@@ -14,6 +16,18 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
   // 有効キーを小節順に走査して決定
   let currentKey = wholeScore.key;
   let currentFlats = baseUseFlats;
+
+  const measuresRenderable = sortedMeasures.map((measure) => {
+    if (measure.key_name && measure.key != null) {
+      currentKey = measure.key;
+      currentFlats = isFlatKey(measure.key_name);
+    }
+    return {
+      measure,
+      effectiveKey: currentKey,
+      effectiveFlats: currentFlats,
+    };
+  });
 
   return (
     <div>
@@ -43,23 +57,15 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 border-t border-l border-border sm:grid-cols-2 lg:grid-cols-4">
-        {sortedMeasures.map((measure) => {
-          if (measure.key_name && measure.key != null) {
-            currentKey = measure.key;
-            currentFlats = isFlatKey(measure.key_name);
-          }
-          const effectiveKey = currentKey;
-          const effectiveFlats = currentFlats;
-
+      <div className="flex flex-wrap items-stretch">
+        {measuresRenderable.map(({ measure, effectiveKey, effectiveFlats }) => {
           const sortedChords = [...measure.chords].sort(
             (a, b) => a.position - b.position
           );
-
           return (
             <div
               key={measure.id}
-              className="min-h-16 border-r border-b border-border p-2"
+              className="min-h-12 border-l border-b border-border px-3 py-2"
             >
               {measure.key_name && (
                 <div className="mb-1">
@@ -68,9 +74,9 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
                   </span>
                 </div>
               )}
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2">
                 {sortedChords.map((chord) => (
-                  <span key={chord.id} className="font-mono text-sm">
+                  <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
                     {formatChord(chord, effectiveKey, effectiveFlats)}
                   </span>
                 ))}
