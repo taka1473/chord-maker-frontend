@@ -4,17 +4,33 @@ import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { Score } from "@/features/scores/types";
 
-export function useScores() {
+type UseScoresParams = {
+  search?: string;
+  tags?: string[];
+};
+
+export function useScores(params: UseScoresParams = {}) {
+  const { search, tags } = params;
   const [scores, setScores] = useState<Score[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const tagsKey = tags?.join(",") ?? "";
 
   useEffect(() => {
     let cancelled = false;
 
     async function fetchScores() {
+      setLoading(true);
       try {
-        const data = await apiClient<Score[]>("/api/scores");
+        const qp = new URLSearchParams();
+        if (search) qp.set("search", search);
+        if (tags && tags.length > 0) {
+          tags.forEach((t) => qp.append("tags[]", t));
+        }
+        const qs = qp.toString();
+        const url = qs ? `/api/scores?${qs}` : "/api/scores";
+        const data = await apiClient<Score[]>(url);
         if (!cancelled) {
           setScores(data);
         }
@@ -33,7 +49,8 @@ export function useScores() {
     return () => {
       cancelled = true;
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [search, tagsKey]);
 
   return { scores, error, loading };
 }

@@ -5,9 +5,10 @@ import { useState, type KeyboardEvent } from "react";
 type TagInputProps = {
   tags: string[];
   onChange: (tags: string[]) => void;
+  placeholder?: string;
 };
 
-export function TagInput({ tags, onChange }: TagInputProps) {
+export function TagInput({ tags, onChange, placeholder }: TagInputProps) {
   const [input, setInput] = useState("");
 
   function addTag(value: string) {
@@ -40,7 +41,7 @@ export function TagInput({ tags, onChange }: TagInputProps) {
 
   return (
     <div>
-      <div className="flex flex-wrap items-center gap-1.5 rounded border border-foreground/20 bg-background px-2 py-1.5 focus-within:border-foreground/40">
+      <div className="flex flex-wrap items-center gap-1.5 rounded border border-border bg-background px-2 py-1.5 focus-within:border-primary">
         {tags.map((tag, i) => (
           <span
             key={tag}
@@ -62,7 +63,7 @@ export function TagInput({ tags, onChange }: TagInputProps) {
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
-          placeholder={tags.length === 0 ? "タグを入力（Enterで追加）" : ""}
+          placeholder={tags.length === 0 ? (placeholder ?? "タグを入力（Enterで追加）") : ""}
           className="min-w-[120px] flex-1 bg-transparent py-0.5 text-sm outline-none"
         />
       </div>
