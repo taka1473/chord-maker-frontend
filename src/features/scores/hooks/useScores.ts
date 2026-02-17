@@ -4,13 +4,16 @@ import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { Score } from "@/features/scores/types";
 
+export type SortOption = "newest" | "oldest";
+
 type UseScoresParams = {
   search?: string;
   tags?: string[];
+  sort?: SortOption;
 };
 
 export function useScores(params: UseScoresParams = {}) {
-  const { search, tags } = params;
+  const { search, tags, sort } = params;
   const [scores, setScores] = useState<Score[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,6 +31,7 @@ export function useScores(params: UseScoresParams = {}) {
         if (tags && tags.length > 0) {
           tags.forEach((t) => qp.append("tags[]", t));
         }
+        if (sort) qp.set("sort", sort);
         const qs = qp.toString();
         const url = qs ? `/api/scores?${qs}` : "/api/scores";
         const data = await apiClient<Score[]>(url);
@@ -50,7 +54,7 @@ export function useScores(params: UseScoresParams = {}) {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [search, tagsKey]);
+  }, [search, tagsKey, sort]);
 
   return { scores, error, loading };
 }

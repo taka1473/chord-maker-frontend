@@ -1,21 +1,26 @@
 import { Input } from "@/features/shared";
 import { TagInput } from "@/features/scores/components/TagInput";
+import type { SortOption } from "@/features/scores/hooks/useScores";
 
 type ScoreSearchFormProps = {
   query: string;
   tags: string[];
+  sort: SortOption;
   onQueryChange: (query: string) => void;
   onTagsChange: (tags: string[]) => void;
+  onSortChange: (sort: SortOption) => void;
 };
 
 export function ScoreSearchForm({
   query,
   tags,
+  sort,
   onQueryChange,
   onTagsChange,
+  onSortChange,
 }: ScoreSearchFormProps) {
   return (
-    <div className="flex flex-col gap-3 sm:flex-row">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-start">
       <Input
         type="text"
         value={query}
@@ -30,6 +35,14 @@ export function ScoreSearchForm({
           placeholder="タグで絞り込み（Enterで追加）"
         />
       </div>
+      <select
+        value={sort}
+        onChange={(e) => onSortChange(e.target.value as SortOption)}
+        className="rounded border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none"
+      >
+        <option value="newest">新しい順</option>
+        <option value="oldest">古い順</option>
+      </select>
     </div>
   );
 }

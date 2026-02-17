@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useScores } from "@/features/scores/hooks/useScores";
+import { useScores, type SortOption } from "@/features/scores/hooks/useScores";
 import { ScoreCard } from "@/features/scores/components/ScoreCard";
 import { ScoreSearchForm } from "@/features/scores/components/ScoreSearchForm";
 import { useDebounce } from "@/lib/useDebounce";
@@ -9,12 +9,14 @@ import { useDebounce } from "@/lib/useDebounce";
 export function ScoreList() {
   const [query, setQuery] = useState("");
   const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [sort, setSort] = useState<SortOption>("newest");
 
   const debouncedQuery = useDebounce(query, 300);
 
   const { scores, error, loading } = useScores({
     search: debouncedQuery || undefined,
     tags: filterTags.length > 0 ? filterTags : undefined,
+    sort,
   });
 
   return (
@@ -23,8 +25,10 @@ export function ScoreList() {
         <ScoreSearchForm
           query={query}
           tags={filterTags}
+          sort={sort}
           onQueryChange={setQuery}
           onTagsChange={setFilterTags}
+          onSortChange={setSort}
         />
       </div>
 
