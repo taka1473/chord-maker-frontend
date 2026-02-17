@@ -57,33 +57,43 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         )}
       </div>
 
-      <div className="flex flex-wrap items-stretch">
-        {measuresRenderable.map(({ measure, effectiveKey, effectiveFlats }) => {
-          const sortedChords = [...measure.chords].sort(
-            (a, b) => a.position - b.position
-          );
-          return (
-            <div
-              key={measure.id}
-              className="min-h-12 border-l border-b border-border px-3 py-2"
-            >
-              {measure.key_name && (
-                <div className="mb-1">
-                  <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                    Key: {measure.key_name}
-                  </span>
-                </div>
-              )}
-              <div className="flex gap-2">
-                {sortedChords.map((chord) => (
-                  <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
-                    {formatChord(chord, effectiveKey, effectiveFlats)}
-                  </span>
-                ))}
-              </div>
+      <div className="space-y-2">
+        {(() => {
+          const rows = [];
+          for (let i = 0; i < measuresRenderable.length; i += 4) {
+            rows.push(measuresRenderable.slice(i, i + 4));
+          }
+          return rows.map((row, rowIdx) => (
+            <div key={rowIdx} className="flex items-stretch">
+              {row.map(({ measure, effectiveKey, effectiveFlats }) => {
+                const sortedChords = [...measure.chords].sort(
+                  (a, b) => a.position - b.position
+                );
+                return (
+                  <div
+                    key={measure.id}
+                    className="border-l border-border px-3 py-1 first:border-l-0 first:pl-0"
+                  >
+                    {measure.key_name && (
+                      <div className="mb-1">
+                        <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                          Key: {measure.key_name}
+                        </span>
+                      </div>
+                    )}
+                    <div className="flex gap-2">
+                      {sortedChords.map((chord) => (
+                        <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
+                          {formatChord(chord, effectiveKey, effectiveFlats)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          );
-        })}
+          ));
+        })()}
       </div>
     </div>
   );
