@@ -19,19 +19,20 @@ export function ScoreCard({ score }: ScoreCardProps) {
           {score.tempo && <span>BPM: {score.tempo}</span>}
           {score.time_signature && <span>{score.time_signature}</span>}
         </div>
-        {score.tag_names.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {score.tag_names.map((tag) => (
-              <span
-                key={tag}
-                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
-              >
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
       </Link>
+      {score.tag_names.length > 0 && (
+        <div className="flex flex-wrap gap-1.5 px-4 pb-4">
+          {score.tag_names.map((tag) => (
+            <Link
+              key={tag}
+              href={`/?tag=${encodeURIComponent(tag)}`}
+              className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary hover:bg-primary/20"
+            >
+              {tag}
+            </Link>
+          ))}
+        </div>
+      )}
     </Card>
   );
 }

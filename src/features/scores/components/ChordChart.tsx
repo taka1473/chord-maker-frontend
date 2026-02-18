@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { WholeScore } from "@/features/scores/types";
 import { formatChord, isFlatKey } from "@/features/scores/types";
 
@@ -46,12 +47,13 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         {wholeScore.tag_names.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {wholeScore.tag_names.map((tag) => (
-              <span
+              <Link
                 key={tag}
-                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary"
+                href={`/?tag=${encodeURIComponent(tag)}`}
+                className="rounded bg-primary/10 px-2 py-0.5 text-xs text-primary hover:bg-primary/20"
               >
                 {tag}
-              </span>
+              </Link>
             ))}
           </div>
         )}

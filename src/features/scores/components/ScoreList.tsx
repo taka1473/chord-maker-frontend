@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 import { useScores, type SortOption } from "@/features/scores/hooks/useScores";
 import { ScoreCard } from "@/features/scores/components/ScoreCard";
 import { ScoreSearchForm } from "@/features/scores/components/ScoreSearchForm";
@@ -8,8 +9,13 @@ import { Pagination } from "@/features/shared";
 import { useDebounce } from "@/lib/useDebounce";
 
 export function ScoreList() {
+  const searchParams = useSearchParams();
+  const initialTag = searchParams.get("tag");
+
   const [query, setQuery] = useState("");
-  const [filterTags, setFilterTags] = useState<string[]>([]);
+  const [filterTags, setFilterTags] = useState<string[]>(
+    initialTag ? [initialTag] : []
+  );
   const [sort, setSort] = useState<SortOption>("newest");
   const [page, setPage] = useState(1);
 
