@@ -1,32 +1,49 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import type { WholeScore } from "@/features/scores/types";
-import { formatChord, isFlatKey } from "@/features/scores/types";
+import {
+  formatChord,
+  isFlatKey,
+  keyNameToNumber,
+  getKeyNameFromNumber,
+  KEY_NAMES,
+} from "@/features/scores/types";
 
 type ChordChartProps = {
   wholeScore: WholeScore;
 };
 
 export function ChordChart({ wholeScore }: ChordChartProps) {
-  const baseUseFlats = isFlatKey(wholeScore.key_name);
+  const [selectedKeyName, setSelectedKeyName] = useState(wholeScore.key_name);
+
+  const selectedKeyNumber = keyNameToNumber(selectedKeyName);
+  const transposition = ((selectedKeyNumber - wholeScore.key) % 12 + 12) % 12;
+  const selectedUseFlats = isFlatKey(selectedKeyName);
+
   const sortedMeasures = [...wholeScore.measures].sort(
     (a, b) => a.position - b.position
   );
 
-  // 有効キーを小節順に走査して決定
-  let currentKey = wholeScore.key;
-  let currentFlats = baseUseFlats;
+  // 有効キーを小節順に走査して決定（転調オフセットを適用）
+  let currentKey = (wholeScore.key + transposition) % 12;
+  let currentFlats = selectedUseFlats;
 
   const measuresRenderable = sortedMeasures.map((measure) => {
     if (measure.key_name && measure.key != null) {
-      currentKey = measure.key;
-      currentFlats = isFlatKey(measure.key_name);
+      currentKey = (measure.key + transposition) % 12;
+      currentFlats = isFlatKey(
+        getKeyNameFromNumber(currentKey, isFlatKey(measure.key_name))
+      );
     }
     return {
       measure,
       effectiveKey: currentKey,
       effectiveFlats: currentFlats,
+      transposedKeyName: measure.key_name
+        ? getKeyNameFromNumber(currentKey, isFlatKey(measure.key_name))
+        : null,
     };
   });
 
@@ -37,8 +54,21 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         {wholeScore.artist && (
           <p className="mt-1 text-sm text-muted">{wholeScore.artist}</p>
         )}
-        <div className="mt-2 flex flex-wrap gap-4 text-sm text-muted">
-          <span>Key: {wholeScore.key_name}</span>
+        <div className="mt-2 flex flex-wrap items-center gap-4 text-sm text-muted">
+          <label className="flex items-center gap-1.5">
+            Key:
+            <select
+              value={selectedKeyName}
+              onChange={(e) => setSelectedKeyName(e.target.value)}
+              className="rounded border border-border bg-background px-2 py-0.5 text-sm font-medium text-foreground focus:border-primary focus:outline-none"
+            >
+              {KEY_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
           {wholeScore.tempo && <span>BPM: {wholeScore.tempo}</span>}
           {wholeScore.time_signature && (
             <span>{wholeScore.time_signature}</span>
@@ -67,7 +97,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
           }
           return rows.map((row, rowIdx) => (
             <div key={rowIdx} className="flex items-stretch">
-              {row.map(({ measure, effectiveKey, effectiveFlats }) => {
+              {row.map(({ measure, effectiveKey, effectiveFlats, transposedKeyName }) => {
                 const sortedChords = [...measure.chords].sort(
                   (a, b) => a.position - b.position
                 );
@@ -76,10 +106,10 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
                     key={measure.id}
                     className="border-l border-border px-3 py-1 first:border-l-0 first:pl-0"
                   >
-                    {measure.key_name && (
+                    {transposedKeyName && (
                       <div className="mb-1">
                         <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                          Key: {measure.key_name}
+                          Key: {transposedKeyName}
                         </span>
                       </div>
                     )}
