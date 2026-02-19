@@ -430,10 +430,10 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
       {/* 画面下部固定パネル */}
       {visibleMeasures.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-10 border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
-          <div className="mx-auto max-w-4xl px-4 py-3">
+        <div className="fixed inset-x-0 bottom-0 z-10 h-[280px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+          <div className="mx-auto flex h-full max-w-4xl flex-col px-4 py-3">
             {/* ナビゲーション矢印 */}
-            <div className="flex items-center justify-center gap-4">
+            <div className="flex shrink-0 items-center justify-center gap-4">
               <button
                 type="button"
                 onClick={() => handleNavigate("left")}
@@ -457,47 +457,51 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
             </div>
 
             {/* アクションパネル: 選択状態に応じて切り替え */}
-            {selection?.type === "chord" && (
-              <ChordInputPanel
-                chord={selectedChordData}
-                scoreKey={selectedMeasureKey.scoreKey}
-                useFlats={selectedMeasureKey.useFlats}
-                onUpdateField={handleUpdateField}
-              />
-            )}
+            <div className="flex min-h-0 flex-1 items-start overflow-y-auto">
+              <div className="w-full">
+                {selection?.type === "chord" && (
+                  <ChordInputPanel
+                    chord={selectedChordData}
+                    scoreKey={selectedMeasureKey.scoreKey}
+                    useFlats={selectedMeasureKey.useFlats}
+                    onUpdateField={handleUpdateField}
+                  />
+                )}
 
-            {selection?.type === "chord_gap" && (
-              <div className="mt-3 flex items-center justify-center rounded-lg border border-dashed border-border py-4">
-                <button
-                  type="button"
-                  onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
-                  className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  + コードを挿入
-                </button>
-              </div>
-            )}
+                {selection?.type === "chord_gap" && (
+                  <div className="mt-3 flex items-center justify-center rounded-lg border border-dashed border-border py-4">
+                    <button
+                      type="button"
+                      onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
+                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                    >
+                      + コードを挿入
+                    </button>
+                  </div>
+                )}
 
-            {selection?.type === "bar_line" && (
-              <div className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-dashed border-border py-4">
-                <button
-                  type="button"
-                  onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
-                  className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                >
-                  + 小節を挿入
-                </button>
-                {clipboard && (
-                  <button
-                    type="button"
-                    onClick={() => handlePasteMeasure(selection.afterMeasureTempId)}
-                    className="rounded bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-opacity hover:opacity-90"
-                  >
-                    ペースト
-                  </button>
+                {selection?.type === "bar_line" && (
+                  <div className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-dashed border-border py-4">
+                    <button
+                      type="button"
+                      onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
+                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                    >
+                      + 小節を挿入
+                    </button>
+                    {clipboard && (
+                      <button
+                        type="button"
+                        onClick={() => handlePasteMeasure(selection.afterMeasureTempId)}
+                        className="rounded bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-opacity hover:opacity-90"
+                      >
+                        ペースト
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
-            )}
+            </div>
           </div>
         </div>
       )}
