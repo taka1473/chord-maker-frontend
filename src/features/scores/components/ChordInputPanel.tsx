@@ -30,7 +30,7 @@ export function ChordInputPanel({
 
   if (!chord) {
     return (
-      <div className="mt-4 rounded-lg border border-border p-4">
+      <div className="mt-3 rounded-lg border border-border p-4">
         <p className="text-center text-sm text-muted">
           コードを選択してください
         </p>
