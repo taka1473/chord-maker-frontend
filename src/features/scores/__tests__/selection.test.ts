@@ -51,9 +51,27 @@ describe("selectionEquals", () => {
     expect(selectionEquals(a, b)).toBe(true);
   });
 
+  it("returns true for identical measure selections", () => {
+    const a = { type: "measure" as const, measureTempId: "m1" };
+    const b = { type: "measure" as const, measureTempId: "m1" };
+    expect(selectionEquals(a, b)).toBe(true);
+  });
+
+  it("returns false for measure selections with different measureTempId", () => {
+    const a = { type: "measure" as const, measureTempId: "m1" };
+    const b = { type: "measure" as const, measureTempId: "m2" };
+    expect(selectionEquals(a, b)).toBe(false);
+  });
+
   it("returns false for different types", () => {
     const a = { type: "chord" as const, measureTempId: "m1", chordTempId: "c1" };
     const b = { type: "bar_line" as const, afterMeasureTempId: "m1" };
+    expect(selectionEquals(a, b)).toBe(false);
+  });
+
+  it("returns false for measure vs chord with same measureTempId", () => {
+    const a = { type: "measure" as const, measureTempId: "m1" };
+    const b = { type: "chord" as const, measureTempId: "m1", chordTempId: "c1" };
     expect(selectionEquals(a, b)).toBe(false);
   });
 });
@@ -80,6 +98,7 @@ describe("buildNavItems", () => {
     const items = buildNavItems(measures);
     expect(items).toEqual([
       { type: "bar_line", afterMeasureTempId: null },
+      { type: "measure", measureTempId: "m1" },
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: null },
       { type: "chord", measureTempId: "m1", chordTempId: "c1" },
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: "c1" },
@@ -110,6 +129,7 @@ describe("buildNavItems", () => {
     expect(items).toEqual([
       { type: "bar_line", afterMeasureTempId: null },
       // m1
+      { type: "measure", measureTempId: "m1" },
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: null },
       { type: "chord", measureTempId: "m1", chordTempId: "c1" },
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: "c1" },
@@ -117,6 +137,7 @@ describe("buildNavItems", () => {
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: "c2" },
       { type: "bar_line", afterMeasureTempId: "m1" },
       // m2
+      { type: "measure", measureTempId: "m2" },
       { type: "chord_gap", measureTempId: "m2", afterChordTempId: null },
       { type: "chord", measureTempId: "m2", chordTempId: "c3" },
       { type: "chord_gap", measureTempId: "m2", afterChordTempId: "c3" },
@@ -151,6 +172,7 @@ describe("buildNavItems", () => {
     const items = buildNavItems(measures);
     expect(items).toEqual([
       { type: "bar_line", afterMeasureTempId: null },
+      { type: "measure", measureTempId: "m1" },
       { type: "chord_gap", measureTempId: "m1", afterChordTempId: null },
       { type: "bar_line", afterMeasureTempId: "m1" },
     ]);

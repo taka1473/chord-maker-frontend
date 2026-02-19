@@ -4,6 +4,7 @@ export type Selection =
   | { type: "chord"; measureTempId: string; chordTempId: string }
   | { type: "chord_gap"; measureTempId: string; afterChordTempId: string | null }
   | { type: "bar_line"; afterMeasureTempId: string | null }
+  | { type: "measure"; measureTempId: string }
   | null;
 
 export function selectionEquals(a: NonNullable<Selection>, b: NonNullable<Selection>): boolean {
@@ -15,6 +16,8 @@ export function selectionEquals(a: NonNullable<Selection>, b: NonNullable<Select
       return a.measureTempId === (b as typeof a).measureTempId && a.afterChordTempId === (b as typeof a).afterChordTempId;
     case "bar_line":
       return a.afterMeasureTempId === (b as typeof a).afterMeasureTempId;
+    case "measure":
+      return a.measureTempId === (b as typeof a).measureTempId;
   }
 }
 
@@ -22,6 +25,7 @@ export function buildNavItems(visibleMeasures: EditableMeasure[]): NonNullable<S
   const items: NonNullable<Selection>[] = [];
   items.push({ type: "bar_line", afterMeasureTempId: null });
   for (const m of visibleMeasures) {
+    items.push({ type: "measure", measureTempId: m.tempId });
     const visChords = m.chords.filter((c) => !c._destroy);
     items.push({ type: "chord_gap", measureTempId: m.tempId, afterChordTempId: null });
     for (const c of visChords) {

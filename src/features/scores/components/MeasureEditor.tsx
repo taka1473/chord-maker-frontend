@@ -1,6 +1,5 @@
-import { Fragment, useState } from "react";
+import { Fragment } from "react";
 import type { EditableMeasure } from "@/features/scores/types";
-import { KEY_NAMES } from "@/features/scores/types";
 import { ChordDisplay } from "@/features/scores/components/ChordDisplay";
 
 type MeasureEditorProps = {
@@ -9,15 +8,11 @@ type MeasureEditorProps = {
   scoreKey: number;
   useFlats?: boolean;
   selectedChordTempId: string | null;
+  isMeasureSelected: boolean;
+  onSelectMeasure: () => void;
   onSelectChord: (chordTempId: string) => void;
   onAddChord: () => void;
   onInsertChord: (afterChordTempId: string | null) => void;
-  onRemoveChord: (chordTempId: string) => void;
-  onRemoveMeasure: () => void;
-  onSetKey: (keyName: string | null) => void;
-  onCopy: () => void;
-  onPaste?: () => void;
-  hasClipboard?: boolean;
   selectedGapAfterChordTempId?: string | null | undefined;
 };
 
@@ -49,99 +44,40 @@ export function MeasureEditor({
   scoreKey,
   useFlats = false,
   selectedChordTempId,
+  isMeasureSelected,
+  onSelectMeasure,
   onSelectChord,
   onAddChord,
   onInsertChord,
-  onRemoveChord,
-  onRemoveMeasure,
-  onSetKey,
-  onCopy,
-  onPaste,
-  hasClipboard = false,
   selectedGapAfterChordTempId,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
-  const [showKeySelect, setShowKeySelect] = useState(false);
 
   return (
-    <div className="p-2">
-      <div className="mb-1.5 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <span className="text-xs font-medium text-muted">
-            {measureIndex + 1}
+    <div
+      className={[
+        "p-2 transition-shadow",
+        isMeasureSelected ? "rounded ring-2 ring-primary" : "",
+      ].join(" ")}
+    >
+      <div className="mb-1.5 flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={onSelectMeasure}
+          className={[
+            "text-xs font-medium transition-colors",
+            isMeasureSelected
+              ? "text-primary"
+              : "text-muted hover:text-foreground",
+          ].join(" ")}
+        >
+          {measureIndex + 1}
+        </button>
+        {measure.key_name && (
+          <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+            Key: {measure.key_name}
           </span>
-          {measure.key_name ? (
-            <span className="flex items-center gap-1">
-              <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                Key: {measure.key_name}
-              </span>
-              <button
-                type="button"
-                onClick={() => onSetKey(null)}
-                className="text-[10px] text-destructive hover:opacity-80"
-                title="転調を解除"
-              >
-                ×
-              </button>
-            </span>
-          ) : (
-            <>
-              {showKeySelect ? (
-                <select
-                  className="rounded border border-border bg-background px-1 py-0.5 text-[10px]"
-                  value=""
-                  onChange={(e) => {
-                    onSetKey(e.target.value || null);
-                    setShowKeySelect(false);
-                  }}
-                  onBlur={() => setShowKeySelect(false)}
-                  autoFocus
-                >
-                  <option value="">選択...</option>
-                  {KEY_NAMES.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
-              ) : (
-                <button
-                  type="button"
-                  onClick={() => setShowKeySelect(true)}
-                  className="rounded px-1 py-0.5 text-[10px] text-muted transition-colors hover:bg-primary/5 hover:text-foreground"
-                  title="転調を設定"
-                >
-                  転調
-                </button>
-              )}
-            </>
-          )}
-        </div>
-        <div className="flex items-center gap-1">
-          <button
-            type="button"
-            onClick={onCopy}
-            className="rounded px-1.5 py-0.5 text-[10px] text-muted transition-colors hover:bg-primary/5 hover:text-foreground"
-            title="小節をコピー"
-          >
-            コピー
-          </button>
-          {hasClipboard && onPaste && (
-            <button
-              type="button"
-              onClick={onPaste}
-              className="rounded px-1.5 py-0.5 text-[10px] text-secondary transition-colors hover:bg-secondary/10"
-              title="この小節の後にペースト"
-            >
-              ペースト
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={onRemoveMeasure}
-            className="rounded px-1.5 py-0.5 text-[10px] text-destructive transition-colors hover:bg-destructive/10"
-          >
-            削除
-          </button>
-        </div>
+        )}
       </div>
 
       <div className="flex flex-wrap items-center">
@@ -156,7 +92,6 @@ export function MeasureEditor({
                   useFlats={useFlats}
                   isSelected={chord.tempId === selectedChordTempId}
                   onSelect={() => onSelectChord(chord.tempId)}
-                  onRemove={() => onRemoveChord(chord.tempId)}
                 />
                 <ChordGap onClick={() => onInsertChord(chord.tempId)} isSelected={selectedGapAfterChordTempId === chord.tempId} />
               </Fragment>

@@ -139,6 +139,12 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     );
   }, [measures, selection]);
 
+  // 選択中の小節データ
+  const selectedMeasureData = useMemo<EditableMeasure | null>(() => {
+    if (!selection || selection.type !== "measure") return null;
+    return measures.find((m) => m.tempId === selection.measureTempId) ?? null;
+  }, [measures, selection]);
+
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
   const useFlats = isFlatKey(formData.key_name);
 
@@ -225,6 +231,10 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     setSelection({ type: "chord", measureTempId, chordTempId });
   }
 
+  function handleSelectMeasure(measureTempId: string) {
+    setSelection({ type: "measure", measureTempId });
+  }
+
   function handleUpdateField(field: string, value: number | string) {
     if (!selection || selection.type !== "chord") return;
     dispatch({
@@ -239,10 +249,10 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   function handleCopyMeasure(measureTempId: string) {
     const measure = measures.find((m) => m.tempId === measureTempId);
     if (!measure) return;
-    const visibleChords = measure.chords.filter((c) => !c._destroy);
+    const visChords = measure.chords.filter((c) => !c._destroy);
     setClipboard({
       key_name: measure.key_name,
-      chords: visibleChords.map((c) => ({
+      chords: visChords.map((c) => ({
         root_offset: c.root_offset,
         bass_offset: c.bass_offset,
         chord_type: c.chord_type,
@@ -353,6 +363,10 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                               ? selection.chordTempId
                               : null
                           }
+                          isMeasureSelected={
+                            selection?.type === "measure" && selection.measureTempId === measure.tempId
+                          }
+                          onSelectMeasure={() => handleSelectMeasure(measure.tempId)}
                           selectedGapAfterChordTempId={getSelectedGap(measure.tempId)}
                           onSelectChord={(chordTempId) =>
                             handleSelectChord(measure.tempId, chordTempId)
@@ -361,18 +375,6 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                           onInsertChord={(afterChordTempId) =>
                             handleInsertChord(measure.tempId, afterChordTempId)
                           }
-                          onRemoveChord={(chordTempId) =>
-                            handleRemoveChord(measure.tempId, chordTempId)
-                          }
-                          onRemoveMeasure={() =>
-                            handleRemoveMeasure(measure.tempId)
-                          }
-                          onSetKey={(keyName: string | null) =>
-                            dispatch({ type: "SET_MEASURE_KEY", measureTempId: measure.tempId, keyName })
-                          }
-                          onCopy={() => handleCopyMeasure(measure.tempId)}
-                          onPaste={() => handlePasteMeasure(measure.tempId)}
-                          hasClipboard={!!clipboard}
                         />
                       </div>
                       {/* Bar line after each measure */}
@@ -446,6 +448,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                 {selection?.type === "chord" && "コード選択中"}
                 {selection?.type === "chord_gap" && "コード挿入位置"}
                 {selection?.type === "bar_line" && "小節挿入位置"}
+                {selection?.type === "measure" && "小節選択中"}
               </span>
               <button
                 type="button"
@@ -460,12 +463,25 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
             <div className="flex min-h-0 flex-1 items-start overflow-y-auto">
               <div className="w-full">
                 {selection?.type === "chord" && (
-                  <ChordInputPanel
-                    chord={selectedChordData}
-                    scoreKey={selectedMeasureKey.scoreKey}
-                    useFlats={selectedMeasureKey.useFlats}
-                    onUpdateField={handleUpdateField}
-                  />
+                  <>
+                    <ChordInputPanel
+                      chord={selectedChordData}
+                      scoreKey={selectedMeasureKey.scoreKey}
+                      useFlats={selectedMeasureKey.useFlats}
+                      onUpdateField={handleUpdateField}
+                    />
+                    {selectedChordData && (
+                      <div className="mt-2 flex justify-end">
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveChord(selection.measureTempId, selection.chordTempId)}
+                          className="rounded px-3 py-1 text-xs text-destructive transition-colors hover:bg-destructive/10"
+                        >
+                          コード削除
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )}
 
                 {selection?.type === "chord_gap" && (
@@ -498,6 +514,49 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                         ペースト
                       </button>
                     )}
+                  </div>
+                )}
+
+                {selection?.type === "measure" && selectedMeasureData && (
+                  <div className="mt-3 space-y-3">
+                    {/* 転調 */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-medium text-muted">転調:</span>
+                      <select
+                        className="rounded border border-border bg-background px-2 py-1 text-sm"
+                        value={selectedMeasureData.key_name ?? ""}
+                        onChange={(e) => {
+                          dispatch({
+                            type: "SET_MEASURE_KEY",
+                            measureTempId: selection.measureTempId,
+                            keyName: e.target.value || null,
+                          });
+                        }}
+                      >
+                        <option value="">なし</option>
+                        {KEY_NAMES.map((k) => (
+                          <option key={k} value={k}>{k}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* コピー・削除 */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleCopyMeasure(selection.measureTempId)}
+                        className="rounded border border-border px-3 py-1.5 text-sm transition-colors hover:bg-primary/5"
+                      >
+                        コピー
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMeasure(selection.measureTempId)}
+                        className="rounded border border-destructive/30 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                      >
+                        小節を削除
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
