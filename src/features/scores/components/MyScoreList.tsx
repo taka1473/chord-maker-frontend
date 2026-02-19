@@ -12,11 +12,11 @@ function MyScoreCard({
   onDelete,
 }: {
   score: Score;
-  onDelete: (id: number) => void;
+  onDelete: (slug: string) => void;
 }) {
   return (
     <Card variant="interactive" className="p-4">
-      <Link href={`/scores/${score.id}`}>
+      <Link href={`/scores/${score.slug}`}>
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold">{score.title}</h3>
           <span
@@ -52,17 +52,17 @@ function MyScoreCard({
         )}
       </Link>
       <div className="mt-3 flex gap-2">
-        <ButtonLink href={`/scores/${score.id}`} variant="secondary" size="sm">
+        <ButtonLink href={`/scores/${score.slug}`} variant="secondary" size="sm">
           閲覧
         </ButtonLink>
-        <ButtonLink href={`/scores/${score.id}/edit`} variant="secondary" size="sm">
+        <ButtonLink href={`/scores/${score.slug}/edit`} variant="secondary" size="sm">
           編集
         </ButtonLink>
         <Button
           variant="destructive"
           size="sm"
           type="button"
-          onClick={() => onDelete(score.id)}
+          onClick={() => onDelete(score.slug)}
         >
           削除
         </Button>
@@ -74,17 +74,17 @@ function MyScoreCard({
 export function MyScoreList() {
   const { scores: fetchedScores, error, loading } = useMyScores();
   const { deleteScore } = useDeleteScore();
-  const [deletedIds, setDeletedIds] = useState<Set<number>>(new Set());
+  const [deletedSlugs, setDeletedSlugs] = useState<Set<string>>(new Set());
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
-  const scores = fetchedScores.filter((s) => !deletedIds.has(s.id));
+  const scores = fetchedScores.filter((s) => !deletedSlugs.has(s.slug));
 
-  async function handleDelete(id: number) {
+  async function handleDelete(slug: string) {
     if (!window.confirm("このスコアを削除しますか？")) return;
     setDeleteError(null);
-    const ok = await deleteScore(id);
+    const ok = await deleteScore(slug);
     if (ok) {
-      setDeletedIds((prev) => new Set(prev).add(id));
+      setDeletedSlugs((prev) => new Set(prev).add(slug));
     } else {
       setDeleteError("削除に失敗しました");
     }

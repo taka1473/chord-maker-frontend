@@ -6,13 +6,13 @@ import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ScoreEditor } from "@/features/scores/components/ScoreEditor";
 
-function EditScoreContent({ id }: { id: string }) {
-  const { wholeScore, error, loading } = useWholeScore(id);
+function EditScoreContent({ slug }: { slug: string }) {
+  const { wholeScore, error, loading } = useWholeScore(slug);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
       <ButtonLink
-        href={`/scores/${id}`}
+        href={`/scores/${slug}`}
         variant="ghost"
         className="mb-6 inline-block"
       >
@@ -28,7 +28,7 @@ function EditScoreContent({ id }: { id: string }) {
       {error && <p className="text-center text-destructive">{error}</p>}
 
       {wholeScore && (
-        <ScoreEditor scoreId={wholeScore.id} initialData={wholeScore} />
+        <ScoreEditor scoreSlug={wholeScore.slug} initialData={wholeScore} />
       )}
     </div>
   );
@@ -37,13 +37,13 @@ function EditScoreContent({ id }: { id: string }) {
 export default function EditScorePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = use(params);
+  const { slug } = use(params);
 
   return (
     <AuthGuard>
-      <EditScoreContent id={id} />
+      <EditScoreContent slug={slug} />
     </AuthGuard>
   );
 }

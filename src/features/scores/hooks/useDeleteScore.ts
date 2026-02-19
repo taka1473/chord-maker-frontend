@@ -7,11 +7,11 @@ export function useDeleteScore() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const deleteScore = useCallback(async (id: number) => {
+  const deleteScore = useCallback(async (slug: string) => {
     setError(null);
     setLoading(true);
     try {
-      await apiClient<void>(`/api/scores/${id}`, {
+      await apiClient<void>(`/api/scores/${slug}`, {
         method: "DELETE",
         requireAuth: true,
       });

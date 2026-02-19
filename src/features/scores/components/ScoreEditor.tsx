@@ -74,7 +74,7 @@ const KEY_MAP: Record<string, number> = {
 // --- Component ---
 
 type ScoreEditorProps = {
-  scoreId: number;
+  scoreSlug: string;
   initialData: WholeScore;
 };
 
@@ -102,7 +102,7 @@ function resolveKeyName(ws: WholeScore): string {
   return KEY_NAMES[0];
 }
 
-export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
+export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   const router = useRouter();
   const { updateScore, error, loading } = useUpdateScore();
   const cols = useColumnsPerRow();
@@ -272,9 +272,9 @@ export function ScoreEditor({ scoreId, initialData }: ScoreEditorProps) {
   }
 
   async function handleSave() {
-    const result = await updateScore(scoreId, formData, measures, published);
+    const result = await updateScore(scoreSlug, formData, measures, published);
     if (result) {
-      router.push(`/scores/${scoreId}`);
+      router.push(`/scores/${scoreSlug}`);
     }
   }
 

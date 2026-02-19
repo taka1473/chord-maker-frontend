@@ -31,7 +31,7 @@ export function useUpdateScore() {
 
   const updateScore = useCallback(
     async (
-      id: number,
+      slug: string,
       formData: ScoreFormData,
       measures: EditableMeasure[],
       published: boolean
@@ -40,7 +40,7 @@ export function useUpdateScore() {
       setLoading(true);
       try {
         const result = await apiClient<WholeScore>(
-          `/api/scores/${id}/upsert_whole_score`,
+          `/api/scores/${slug}/upsert_whole_score`,
           {
             method: "PATCH",
             body: {

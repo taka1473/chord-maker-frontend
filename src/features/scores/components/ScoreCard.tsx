@@ -9,7 +9,7 @@ type ScoreCardProps = {
 export function ScoreCard({ score }: ScoreCardProps) {
   return (
     <Card variant="interactive">
-      <Link href={`/scores/${score.id}`} className="block p-4">
+      <Link href={`/scores/${score.slug}`} className="block p-4">
         <h3 className="text-lg font-semibold">{score.title}</h3>
         {score.artist && (
           <p className="mt-0.5 text-sm text-muted">{score.artist}</p>

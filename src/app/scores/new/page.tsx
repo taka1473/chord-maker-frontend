@@ -25,7 +25,7 @@ function NewScoreContent() {
     e.preventDefault();
     const score = await createScore(formData);
     if (score) {
-      router.push(`/scores/${score.id}/edit`);
+      router.push(`/scores/${score.slug}/edit`);
     }
   }
 

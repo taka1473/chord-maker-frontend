@@ -1,5 +1,6 @@
 export type Score = {
   id: number;
+  slug: string;
   title: string;
   artist: string | null;
   key: number;
@@ -30,6 +31,7 @@ export type Measure = {
 
 export type WholeScore = {
   id: number;
+  slug: string;
   title: string;
   artist: string | null;
   key: number;

@@ -8,11 +8,11 @@ import { useWholeScore, ChordChart } from "@/features/scores";
 export default function ScoreDetailPage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const { id } = use(params);
+  const { slug } = use(params);
   const { user } = useAuth();
-  const { wholeScore, error, loading } = useWholeScore(id);
+  const { wholeScore, error, loading } = useWholeScore(slug);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8">
@@ -31,7 +31,7 @@ export default function ScoreDetailPage({
           <ChordChart wholeScore={wholeScore} />
           {user && (
             <div className="mt-6">
-              <ButtonLink href={`/scores/${id}/edit`}>
+              <ButtonLink href={`/scores/${slug}/edit`}>
                 編集
               </ButtonLink>
             </div>
