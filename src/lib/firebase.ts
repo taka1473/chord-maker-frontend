@@ -27,7 +27,8 @@ export function getFirebaseAuth(): Auth {
     ) {
       connectAuthEmulator(
         auth,
-        `http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`
+        `http://${process.env.NEXT_PUBLIC_FIREBASE_AUTH_EMULATOR_HOST}`,
+        { disableWarnings: true }
       );
     }
   }
