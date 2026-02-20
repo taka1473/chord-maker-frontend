@@ -20,13 +20,13 @@ import { Button } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
 
-function BarLine({ onClick, onPaste, hasClipboard, isSelected }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean; isSelected?: boolean }) {
+function BarLine({ onClick, onPaste, hasClipboard, isSelected, hideBar }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean; isSelected?: boolean; hideBar?: boolean }) {
   const showButtons = isSelected;
   return (
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className={[
         "h-full w-px transition-all",
-        isSelected ? "w-0.5 bg-primary" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
+        hideBar && !isSelected ? "bg-transparent group-hover:bg-primary" : isSelected ? "w-0.5 bg-primary" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
       ].join(" ")} />
       <div className={[
         "absolute flex-col gap-1",
@@ -330,6 +330,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                     onPaste={() => handlePasteMeasure(null)}
                     hasClipboard={!!clipboard}
                     isSelected={isBarLineSelected(null)}
+                    hideBar
                   />
                 )}
                 {/* Non-first rows: leading bar line inserts after prev row's last measure */}
@@ -342,6 +343,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                       onPaste={() => handlePasteMeasure(lastMeasure.tempId)}
                       hasClipboard={!!clipboard}
                       isSelected={isBarLineSelected(lastMeasure.tempId)}
+                      hideBar
                     />
                   );
                 })()}
