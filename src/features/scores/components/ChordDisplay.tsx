@@ -21,10 +21,10 @@ export function ChordDisplay({
       type="button"
       onClick={onSelect}
       className={[
-        "rounded px-3 py-1.5 text-sm font-mono transition-colors",
+        "font-mono text-sm whitespace-nowrap transition-colors",
         isSelected
-          ? "bg-primary/10 text-primary ring-2 ring-primary"
-          : "border border-border hover:border-primary/30",
+          ? "rounded bg-primary/10 text-primary ring-2 ring-primary px-1"
+          : "hover:text-primary",
       ].join(" ")}
     >
       {formatChord(chord, scoreKey, useFlats)}

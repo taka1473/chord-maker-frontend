@@ -16,7 +16,6 @@ import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
-import { useColumnsPerRow } from "@/features/scores/hooks/useColumnsPerRow";
 import { Button } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
@@ -105,7 +104,7 @@ function resolveKeyName(ws: WholeScore): string {
 export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   const router = useRouter();
   const { updateScore, error, loading } = useUpdateScore();
-  const cols = useColumnsPerRow();
+  const cols = 4;
 
   const [formData, setFormData] = useState<ScoreFormData>({
     title: initialData.title,
@@ -321,7 +320,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
         <h2 className="mb-3 text-xl font-semibold">コード譜</h2>
 
         {rows.length > 0 ? (
-          <div className="space-y-0">
+          <div className="space-y-2">
             {rows.map((row, rowIdx) => (
               <div key={rowIdx} className="flex items-stretch">
                 {/* Leading bar line for first row */}
@@ -347,15 +346,13 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                   );
                 })()}
 
-                {row.map((measure, colIdx) => {
-                  const globalIndex = rowIdx * cols + colIdx;
+                {row.map((measure) => {
                   const ek = effectiveKeys.get(measure.tempId);
                   return (
                     <Fragment key={measure.tempId}>
-                      <div className="min-h-[60px] flex-1 border-b border-border">
+                      <div className="flex-1">
                         <MeasureEditor
                           measure={measure}
-                          measureIndex={globalIndex}
                           scoreKey={ek?.scoreKey ?? scoreKey}
                           useFlats={ek?.useFlats ?? useFlats}
                           selectedChordTempId={

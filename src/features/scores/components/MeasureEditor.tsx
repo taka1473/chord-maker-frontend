@@ -4,7 +4,6 @@ import { ChordDisplay } from "@/features/scores/components/ChordDisplay";
 
 type MeasureEditorProps = {
   measure: EditableMeasure;
-  measureIndex: number;
   scoreKey: number;
   useFlats?: boolean;
   selectedChordTempId: string | null;
@@ -40,7 +39,6 @@ function ChordGap({ onClick, isSelected }: { onClick: () => void; isSelected?: b
 
 export function MeasureEditor({
   measure,
-  measureIndex,
   scoreKey,
   useFlats = false,
   selectedChordTempId,
@@ -56,28 +54,18 @@ export function MeasureEditor({
   return (
     <div
       className={[
-        "cursor-pointer p-2 transition-shadow",
-        isMeasureSelected ? "rounded ring-2 ring-primary" : "",
+        "cursor-pointer px-3 py-1 transition-colors",
+        isMeasureSelected ? "bg-primary/5" : "",
       ].join(" ")}
       onClick={onSelectMeasure}
     >
-      <div className="mb-1.5 flex items-center gap-1.5">
-        <span
-          className={[
-            "text-xs font-medium transition-colors",
-            isMeasureSelected
-              ? "text-primary"
-              : "text-muted",
-          ].join(" ")}
-        >
-          {measureIndex + 1}
-        </span>
-        {measure.key_name && (
+      {measure.key_name && (
+        <div className="mb-1">
           <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
             Key: {measure.key_name}
           </span>
-        )}
-      </div>
+        </div>
+      )}
 
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
       <div className="flex flex-wrap items-center" onClick={(e) => e.stopPropagation()}>
