@@ -322,7 +322,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
         {rows.length > 0 ? (
           <div className="space-y-2">
             {rows.map((row, rowIdx) => (
-              <div key={rowIdx} className="flex items-stretch">
+              <div key={rowIdx} className="flex items-stretch flex-wrap">
                 {/* Leading bar line for first row */}
                 {rowIdx === 0 && (
                   <BarLine

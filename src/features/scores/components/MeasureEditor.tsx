@@ -68,7 +68,7 @@ export function MeasureEditor({
       )}
 
       {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
-      <div className="flex flex-wrap items-center" onClick={(e) => e.stopPropagation()}>
+      <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
         {visibleChords.length > 0 ? (
           <>
             <ChordGap onClick={() => onInsertChord(null)} isSelected={selectedGapAfterChordTempId === null} />
