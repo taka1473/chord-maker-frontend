@@ -6,6 +6,7 @@ type ChordDisplayProps = {
   scoreKey: number;
   useFlats?: boolean;
   isSelected: boolean;
+  isPending?: boolean;
   onSelect: () => void;
 };
 
@@ -14,6 +15,7 @@ export function ChordDisplay({
   scoreKey,
   useFlats = false,
   isSelected,
+  isPending = false,
   onSelect,
 }: ChordDisplayProps) {
   return (
@@ -22,12 +24,14 @@ export function ChordDisplay({
       onClick={onSelect}
       className={[
         "font-mono text-sm whitespace-nowrap transition-colors",
-        isSelected
-          ? "rounded bg-primary/10 text-primary ring-2 ring-primary px-1"
-          : "hover:text-primary",
+        isPending
+          ? "rounded border border-dashed border-accent/50 px-1 text-muted"
+          : isSelected
+            ? "rounded bg-primary/10 text-primary ring-2 ring-primary px-1"
+            : "hover:text-primary",
       ].join(" ")}
     >
-      {formatChord(chord, scoreKey, useFlats)}
+      {isPending ? "--" : formatChord(chord, scoreKey, useFlats)}
     </button>
   );
 }

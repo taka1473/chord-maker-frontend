@@ -385,6 +385,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                             selection?.type === "measure" && selection.measureTempId === measure.tempId
                           }
                           onSelectMeasure={() => handleSelectMeasure(measure.tempId)}
+                          pendingChordTempId={pendingChord?.measureTempId === measure.tempId ? pendingChord.chordTempId : null}
                           selectedGapAfterChordTempId={getSelectedGap(measure.tempId)}
                           onSelectChord={(chordTempId) =>
                             handleSelectChord(measure.tempId, chordTempId)
@@ -461,9 +462,9 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
               >
                 ◀
               </button>
-              <span className="text-xs text-muted">
+              <span className={["text-xs", pendingChord ? "text-accent" : "text-muted"].join(" ")}>
                 {!selection && "タップで選択"}
-                {selection?.type === "chord" && "コード選択中"}
+                {selection?.type === "chord" && (pendingChord ? "コードを入力してください" : "コード選択中")}
                 {selection?.type === "chord_gap" && "コード挿入位置"}
                 {selection?.type === "bar_line" && "小節挿入位置"}
                 {selection?.type === "measure" && "小節選択中"}
@@ -486,6 +487,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                       chord={selectedChordData}
                       scoreKey={selectedMeasureKey.scoreKey}
                       useFlats={selectedMeasureKey.useFlats}
+                      isPending={!!pendingChord}
                       onUpdateField={handleUpdateField}
                     />
                     {selectedChordData && (

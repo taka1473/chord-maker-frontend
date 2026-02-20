@@ -12,6 +12,7 @@ type ChordInputPanelProps = {
   chord: EditableChord | null;
   scoreKey: number;
   useFlats?: boolean;
+  isPending?: boolean;
   onUpdateField: (field: string, value: number | string) => void;
 };
 
@@ -19,6 +20,7 @@ export function ChordInputPanel({
   chord,
   scoreKey,
   useFlats = false,
+  isPending = false,
   onUpdateField,
 }: ChordInputPanelProps) {
   const [noteMode, setNoteMode] = useState<NoteMode>("root");
@@ -57,8 +59,8 @@ export function ChordInputPanel({
 
   return (
     <div className="mt-4 rounded-lg border border-border p-4">
-      <div className="mb-4 text-center font-mono text-xl font-bold">
-        {formatChord(chord, scoreKey, useFlats)}
+      <div className={["mb-4 text-center font-mono text-xl font-bold", isPending ? "text-muted" : ""].join(" ")}>
+        {isPending ? "--" : formatChord(chord, scoreKey, useFlats)}
       </div>
 
       <div className="mb-3">
@@ -104,7 +106,7 @@ export function ChordInputPanel({
           )}
         </div>
         <PianoKeyboard
-          selectedOffset={selectedOffset}
+          selectedOffset={isPending ? null : selectedOffset}
           scoreKey={scoreKey}
           useFlats={useFlats}
           onSelect={handlePianoSelect}
@@ -116,7 +118,7 @@ export function ChordInputPanel({
           コードタイプ
         </label>
         <ChordTypeSelector
-          selectedType={chord.chord_type}
+          selectedType={isPending ? null : chord.chord_type}
           onSelect={(type) => onUpdateField("chord_type", type)}
         />
       </div>

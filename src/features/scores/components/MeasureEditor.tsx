@@ -12,6 +12,7 @@ type MeasureEditorProps = {
   onSelectChord: (chordTempId: string) => void;
   onAddChord: () => void;
   onInsertChord: (afterChordTempId: string | null) => void;
+  pendingChordTempId?: string | null;
   selectedGapAfterChordTempId?: string | null | undefined;
 };
 
@@ -47,6 +48,7 @@ export function MeasureEditor({
   onSelectChord,
   onAddChord,
   onInsertChord,
+  pendingChordTempId,
   selectedGapAfterChordTempId,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
@@ -79,6 +81,7 @@ export function MeasureEditor({
                   scoreKey={scoreKey}
                   useFlats={useFlats}
                   isSelected={chord.tempId === selectedChordTempId}
+                  isPending={chord.tempId === pendingChordTempId}
                   onSelect={() => onSelectChord(chord.tempId)}
                 />
                 <ChordGap onClick={() => onInsertChord(chord.tempId)} isSelected={selectedGapAfterChordTempId === chord.tempId} />

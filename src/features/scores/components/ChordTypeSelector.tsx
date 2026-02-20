@@ -1,7 +1,7 @@
 import { CHORD_TYPES, getChordTypeSuffix } from "@/features/scores/types";
 
 type ChordTypeSelectorProps = {
-  selectedType: string;
+  selectedType: string | null;
   onSelect: (type: string) => void;
 };
 

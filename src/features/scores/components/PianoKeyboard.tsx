@@ -1,7 +1,7 @@
 import { getNoteName } from "@/features/scores/types";
 
 type PianoKeyboardProps = {
-  selectedOffset: number;
+  selectedOffset: number | null;
   scoreKey: number;
   onSelect: (offset: number) => void;
   useFlats?: boolean;
