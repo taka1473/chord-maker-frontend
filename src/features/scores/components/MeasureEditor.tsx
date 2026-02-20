@@ -56,23 +56,22 @@ export function MeasureEditor({
   return (
     <div
       className={[
-        "p-2 transition-shadow",
+        "cursor-pointer p-2 transition-shadow",
         isMeasureSelected ? "rounded ring-2 ring-primary" : "",
       ].join(" ")}
+      onClick={onSelectMeasure}
     >
       <div className="mb-1.5 flex items-center gap-1.5">
-        <button
-          type="button"
-          onClick={onSelectMeasure}
+        <span
           className={[
             "text-xs font-medium transition-colors",
             isMeasureSelected
               ? "text-primary"
-              : "text-muted hover:text-foreground",
+              : "text-muted",
           ].join(" ")}
         >
           {measureIndex + 1}
-        </button>
+        </span>
         {measure.key_name && (
           <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
             Key: {measure.key_name}
@@ -80,7 +79,8 @@ export function MeasureEditor({
         )}
       </div>
 
-      <div className="flex flex-wrap items-center">
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
+      <div className="flex flex-wrap items-center" onClick={(e) => e.stopPropagation()}>
         {visibleChords.length > 0 ? (
           <>
             <ChordGap onClick={() => onInsertChord(null)} isSelected={selectedGapAfterChordTempId === null} />
