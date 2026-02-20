@@ -352,7 +352,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                   const ek = effectiveKeys.get(measure.tempId);
                   return (
                     <Fragment key={measure.tempId}>
-                      <div className="flex-1">
+                      <div>
                         <MeasureEditor
                           measure={measure}
                           scoreKey={ek?.scoreKey ?? scoreKey}
