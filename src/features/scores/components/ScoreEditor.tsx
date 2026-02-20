@@ -117,12 +117,26 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   const [published, setPublished] = useState(initialData.published);
   const [measures, dispatch] = useReducer(measuresReducer, []);
-  const [selection, setSelection] = useState<Selection>(null);
+  const [selection, setSelectionRaw] = useState<Selection>(null);
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
+  const [pendingChord, setPendingChord] = useState<{ measureTempId: string; chordTempId: string } | null>(null);
+
+  // 選択変更時に未確定コードをクリーンアップするラッパー
+  function setSelection(next: Selection) {
+    if (pendingChord) {
+      const isSelectingPending = next?.type === "chord" && next.chordTempId === pendingChord.chordTempId;
+      if (!isSelectingPending) {
+        dispatch({ type: "REMOVE_CHORD", measureTempId: pendingChord.measureTempId, chordTempId: pendingChord.chordTempId });
+      }
+      setPendingChord(null);
+    }
+    setSelectionRaw(next);
+  }
 
   useEffect(() => {
     dispatch({ type: "INIT", measures: wholeScoreToEditable(initialData) });
-    setSelection(null);
+    setSelectionRaw(null);
+    setPendingChord(null);
   }, [initialData]);
 
   const visibleMeasures = measures.filter((m) => !m._destroy);
@@ -185,13 +199,15 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     const chordTempId = nextTempId();
     dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-    setSelection({ type: "chord", measureTempId, chordTempId });
+    setPendingChord({ measureTempId, chordTempId });
+    setSelectionRaw({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleAddChord(measureTempId: string) {
     const chordTempId = nextTempId();
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-    setSelection({ type: "chord", measureTempId, chordTempId });
+    setPendingChord({ measureTempId, chordTempId });
+    setSelectionRaw({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleInsertChord(
@@ -205,7 +221,8 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
       afterChordTempId,
       chordTempId,
     });
-    setSelection({ type: "chord", measureTempId, chordTempId });
+    setPendingChord({ measureTempId, chordTempId });
+    setSelectionRaw({ type: "chord", measureTempId, chordTempId });
   }
 
   function handleRemoveChord(measureTempId: string, chordTempId: string) {
@@ -236,6 +253,8 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   function handleUpdateField(field: string, value: number | string) {
     if (!selection || selection.type !== "chord") return;
+    // 鍵盤UIでの編集で未確定コードを確定
+    if (pendingChord) setPendingChord(null);
     dispatch({
       type: "UPDATE_CHORD",
       measureTempId: selection.measureTempId,
