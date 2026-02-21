@@ -58,11 +58,7 @@ export function ChordInputPanel({
   const isBassSet = chord.root_offset !== chord.bass_offset;
 
   return (
-    <div className="mt-4 rounded-lg border border-border p-4">
-      <div className={["mb-4 text-center font-mono text-xl font-bold", isPending ? "text-muted" : ""].join(" ")}>
-        {isPending ? "--" : formatChord(chord, scoreKey, useFlats)}
-      </div>
-
+    <div className="mt-2 rounded-lg border border-border p-4">
       <div className="mb-3">
         <div className="mb-1.5 flex items-center gap-2">
           <span

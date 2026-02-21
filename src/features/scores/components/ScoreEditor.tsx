@@ -12,7 +12,7 @@ import type {
   EditableMeasure,
   EditableChord,
 } from "@/features/scores/types";
-import { KEY_NAMES, isFlatKey } from "@/features/scores/types";
+import { KEY_NAMES, isFlatKey, formatChord } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
@@ -460,8 +460,8 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
       {visibleMeasures.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-10 h-[280px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
           <div className="mx-auto flex h-full max-w-4xl flex-col px-4 py-3">
-            {/* ナビゲーション矢印 */}
-            <div className="flex shrink-0 items-center justify-center gap-4">
+            {/* ナビゲーション + コード名/ステータス */}
+            <div className="flex shrink-0 items-center justify-center gap-3">
               <button
                 type="button"
                 onClick={() => handleNavigate("left")}
@@ -469,13 +469,19 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
               >
                 ◀
               </button>
-              <span className={["text-xs", pendingChord ? "text-accent" : "text-muted"].join(" ")}>
-                {!selection && "タップで選択"}
-                {selection?.type === "chord" && (pendingChord ? "コードを入力してください" : "コード選択中")}
-                {selection?.type === "chord_gap" && "コード挿入位置"}
-                {selection?.type === "bar_line" && "小節挿入位置"}
-                {selection?.type === "measure" && "小節選択中"}
-              </span>
+              {selection?.type === "chord" && selectedChordData ? (
+                <span className={["font-mono text-xl font-bold", pendingChord ? "text-muted" : ""].join(" ")}>
+                  {pendingChord ? "--" : formatChord(selectedChordData, selectedMeasureKey.scoreKey, selectedMeasureKey.useFlats)}
+                </span>
+              ) : (
+                <span className="text-xs text-muted">
+                  {!selection && "タップで選択"}
+                  {selection?.type === "chord" && "コード選択中"}
+                  {selection?.type === "chord_gap" && "コード挿入位置"}
+                  {selection?.type === "bar_line" && "小節挿入位置"}
+                  {selection?.type === "measure" && "小節選択中"}
+                </span>
+              )}
               <button
                 type="button"
                 onClick={() => handleNavigate("right")}
