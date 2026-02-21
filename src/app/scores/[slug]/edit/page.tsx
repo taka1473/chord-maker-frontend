@@ -19,8 +19,6 @@ function EditScoreContent({ slug }: { slug: string }) {
         &larr; 詳細に戻る
       </ButtonLink>
 
-      <h1 className="mb-6 text-3xl font-bold">スコアを編集</h1>
-
       {loading && (
         <p className="text-center text-muted">読み込み中...</p>
       )}
