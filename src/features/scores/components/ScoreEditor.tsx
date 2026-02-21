@@ -3,6 +3,7 @@
 import { Fragment, useReducer, useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
+import { TagInput } from "@/features/scores/components/TagInput";
 import { MeasureEditor } from "@/features/scores/components/MeasureEditor";
 import { ChordInputPanel } from "@/features/scores/components/ChordInputPanel";
 import { useUpdateScore } from "@/features/scores/hooks/useUpdateScore";
@@ -373,6 +374,13 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
             <ScoreMetaForm formData={formData} onChange={setFormData} />
           </div>
         )}
+      </div>
+
+      <div className="mt-3">
+        <TagInput
+          tags={formData.tag_names}
+          onChange={(tag_names) => setFormData({ ...formData, tag_names })}
+        />
       </div>
 
       <div className="mt-4">
