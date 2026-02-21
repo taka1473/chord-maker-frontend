@@ -461,60 +461,64 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
         <div className="fixed inset-x-0 bottom-0 z-10 h-[280px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
           <div className="mx-auto flex h-full max-w-4xl flex-col px-4 py-3">
             {/* ナビゲーション + コード名/ステータス */}
-            <div className="flex shrink-0 items-center justify-center gap-3">
-              <button
-                type="button"
-                onClick={() => handleNavigate("left")}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
-              >
-                ◀
-              </button>
-              {selection?.type === "chord" && selectedChordData ? (
-                <span className={["font-mono text-xl font-bold", pendingChord ? "text-muted" : ""].join(" ")}>
-                  {pendingChord ? "--" : formatChord(selectedChordData, selectedMeasureKey.scoreKey, selectedMeasureKey.useFlats)}
-                </span>
-              ) : (
-                <span className="text-xs text-muted">
-                  {!selection && "タップで選択"}
-                  {selection?.type === "chord" && "コード選択中"}
-                  {selection?.type === "chord_gap" && "コード挿入位置"}
-                  {selection?.type === "bar_line" && "小節挿入位置"}
-                  {selection?.type === "measure" && "小節選択中"}
-                </span>
-              )}
-              <button
-                type="button"
-                onClick={() => handleNavigate("right")}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
-              >
-                ▶
-              </button>
+            <div className="flex shrink-0 items-center gap-3">
+              {/* 左: コード削除ボタン */}
+              <div className="w-16">
+                {selection?.type === "chord" && selectedChordData && !pendingChord && (
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveChord(selection.measureTempId, selection.chordTempId)}
+                    className="rounded px-2 py-1 text-xs text-destructive transition-colors hover:bg-destructive/10"
+                  >
+                    削除
+                  </button>
+                )}
+              </div>
+              {/* 中央: ナビ + コード名 */}
+              <div className="flex flex-1 items-center justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => handleNavigate("left")}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                >
+                  ◀
+                </button>
+                {selection?.type === "chord" && selectedChordData ? (
+                  <span className={["font-mono text-xl font-bold", pendingChord ? "text-muted" : ""].join(" ")}>
+                    {pendingChord ? "--" : formatChord(selectedChordData, selectedMeasureKey.scoreKey, selectedMeasureKey.useFlats)}
+                  </span>
+                ) : (
+                  <span className="text-xs text-muted">
+                    {!selection && "タップで選択"}
+                    {selection?.type === "chord" && "コード選択中"}
+                    {selection?.type === "chord_gap" && "コード挿入位置"}
+                    {selection?.type === "bar_line" && "小節挿入位置"}
+                    {selection?.type === "measure" && "小節選択中"}
+                  </span>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleNavigate("right")}
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                >
+                  ▶
+                </button>
+              </div>
+              {/* 右: バランス用 */}
+              <div className="w-16" />
             </div>
 
             {/* アクションパネル: 選択状態に応じて切り替え */}
             <div className="flex min-h-0 flex-1 items-start overflow-y-auto">
               <div className="w-full">
                 {selection?.type === "chord" && (
-                  <>
-                    <ChordInputPanel
-                      chord={selectedChordData}
-                      scoreKey={selectedMeasureKey.scoreKey}
-                      useFlats={selectedMeasureKey.useFlats}
-                      isPending={!!pendingChord}
-                      onUpdateField={handleUpdateField}
-                    />
-                    {selectedChordData && (
-                      <div className="mt-2 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveChord(selection.measureTempId, selection.chordTempId)}
-                          className="rounded px-3 py-1 text-xs text-destructive transition-colors hover:bg-destructive/10"
-                        >
-                          コード削除
-                        </button>
-                      </div>
-                    )}
-                  </>
+                  <ChordInputPanel
+                    chord={selectedChordData}
+                    scoreKey={selectedMeasureKey.scoreKey}
+                    useFlats={selectedMeasureKey.useFlats}
+                    isPending={!!pendingChord}
+                    onUpdateField={handleUpdateField}
+                  />
                 )}
 
                 {selection?.type === "chord_gap" && (
