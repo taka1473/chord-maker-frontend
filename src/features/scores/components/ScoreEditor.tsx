@@ -187,7 +187,14 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     }
     const currentIdx = navItems.findIndex((item) => selectionEquals(item, selection));
     if (currentIdx === -1) return;
-    const nextIdx = direction === "left" ? currentIdx - 1 : currentIdx + 1;
+    let nextIdx = direction === "left" ? currentIdx - 1 : currentIdx + 1;
+    // 未確定コードから右ナビゲーション時、削除されるchord_gapをスキップ
+    if (pendingChord && direction === "right") {
+      const nextItem = navItems[nextIdx];
+      if (nextItem?.type === "chord_gap" && nextItem.afterChordTempId === pendingChord.chordTempId) {
+        nextIdx++;
+      }
+    }
     const next = navItems[nextIdx];
     if (next) {
       setSelection(next);
