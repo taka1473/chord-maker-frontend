@@ -5,8 +5,8 @@ import { MyScoreList } from "@/features/scores/components/MyScoreList";
 
 function MyPageContent() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">マイページ</h1>
+    <div className="mx-auto max-w-4xl px-4 py-4">
+      <h1 className="mb-4 text-3xl font-bold">マイページ</h1>
 
       <div className="mb-8">
         <ProfileEditor />

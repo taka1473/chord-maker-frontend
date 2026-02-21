@@ -30,12 +30,12 @@ function NewScoreContent() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-8">
-      <ButtonLink href="/" variant="ghost" className="mb-6 inline-block">
+    <div className="mx-auto max-w-2xl px-4 py-4">
+      <ButtonLink href="/" variant="ghost" className="mb-3 inline-block">
         &larr; スコア一覧に戻る
       </ButtonLink>
 
-      <h1 className="mb-6 text-3xl font-bold">新しいスコアを作成</h1>
+      <h1 className="mb-4 text-3xl font-bold">新しいスコアを作成</h1>
 
       <form onSubmit={handleSubmit}>
         <ScoreMetaForm formData={formData} onChange={setFormData} />

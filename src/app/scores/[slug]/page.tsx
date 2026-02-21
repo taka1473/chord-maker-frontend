@@ -15,8 +15,8 @@ export default function ScoreDetailPage({
   const { wholeScore, error, loading } = useWholeScore(slug);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <ButtonLink href="/" variant="ghost" className="mb-6 inline-block">
+    <div className="mx-auto max-w-4xl px-4 py-4">
+      <ButtonLink href="/" variant="ghost" className="mb-3 inline-block">
         &larr; スコア一覧に戻る
       </ButtonLink>
 

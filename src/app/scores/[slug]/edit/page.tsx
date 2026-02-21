@@ -10,11 +10,11 @@ function EditScoreContent({ slug }: { slug: string }) {
   const { wholeScore, error, loading } = useWholeScore(slug);
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
+    <div className="mx-auto max-w-4xl px-4 py-4">
       <ButtonLink
         href={`/scores/${slug}`}
         variant="ghost"
-        className="mb-6 inline-block"
+        className="mb-3 inline-block"
       >
         &larr; 詳細に戻る
       </ButtonLink>
