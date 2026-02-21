@@ -120,6 +120,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   const [selection, setSelectionRaw] = useState<Selection>(null);
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
   const [pendingChord, setPendingChord] = useState<{ measureTempId: string; chordTempId: string } | null>(null);
+  const [metaOpen, setMetaOpen] = useState(false);
 
   // 選択変更時に未確定コードをクリーンアップするラッパー
   function setSelection(next: Selection) {
@@ -340,9 +341,41 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   return (
     <div>
-      <ScoreMetaForm formData={formData} onChange={setFormData} />
+      {/* メタ情報アコーディオン */}
+      <div className="rounded-lg border border-border">
+        <button
+          type="button"
+          onClick={() => setMetaOpen(!metaOpen)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-primary/5"
+        >
+          <div className="min-w-0 flex-1">
+            <span className="text-sm font-medium">
+              {formData.title || "無題"}{formData.artist ? ` - ${formData.artist}` : ""}
+            </span>
+            <span className="ml-2 text-sm text-muted">
+              {formData.key_name}{formData.tempo ? ` / ${formData.tempo}bpm` : ""}
+            </span>
+          </div>
+          <span className={[
+            "ml-2 flex shrink-0 items-center gap-1 rounded px-2 py-1 text-xs transition-colors",
+            metaOpen
+              ? "text-muted"
+              : "text-primary/70 hover:text-primary",
+          ].join(" ")}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" fill="currentColor" className="h-3 w-3">
+              <path d="M13.488 2.513a1.75 1.75 0 0 0-2.475 0L3.05 10.476a1 1 0 0 0-.27.51l-.601 3.005a.5.5 0 0 0 .588.588l3.005-.601a1 1 0 0 0 .51-.27l7.963-7.963a1.75 1.75 0 0 0 0-2.475l-.757-.757Z" />
+            </svg>
+            {metaOpen ? "閉じる" : "編集"}
+          </span>
+        </button>
+        {metaOpen && (
+          <div className="border-t border-border px-4 py-4">
+            <ScoreMetaForm formData={formData} onChange={setFormData} />
+          </div>
+        )}
+      </div>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <h2 className="mb-3 text-xl font-semibold">コード譜</h2>
 
         {rows.length > 0 ? (
