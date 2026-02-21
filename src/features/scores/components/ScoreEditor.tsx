@@ -136,9 +136,21 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   }
 
   useEffect(() => {
-    dispatch({ type: "INIT", measures: wholeScoreToEditable(initialData) });
-    setSelectionRaw(null);
+    const editable = wholeScoreToEditable(initialData);
+    dispatch({ type: "INIT", measures: editable });
     setPendingChord(null);
+    // 最後の小節の最後のコードを選択
+    const visible = editable.filter((m) => !m._destroy);
+    const lastMeasure = visible[visible.length - 1];
+    const lastChords = lastMeasure?.chords.filter((c) => !c._destroy);
+    const lastChord = lastChords?.[lastChords.length - 1];
+    if (lastMeasure && lastChord) {
+      setSelectionRaw({ type: "chord", measureTempId: lastMeasure.tempId, chordTempId: lastChord.tempId });
+    } else {
+      setSelectionRaw(null);
+    }
+    // ページ下部までスクロール
+    requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
   }, [initialData]);
 
   const visibleMeasures = measures.filter((m) => !m._destroy);
