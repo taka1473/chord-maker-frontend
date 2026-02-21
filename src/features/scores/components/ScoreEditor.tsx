@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useReducer, useState, useEffect, useMemo } from "react";
+import { Fragment, useReducer, useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { TagInput } from "@/features/scores/components/TagInput";
@@ -122,6 +122,52 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
   const [pendingChord, setPendingChord] = useState<{ measureTempId: string; chordTempId: string } | null>(null);
   const [metaOpen, setMetaOpen] = useState(false);
+  const isDirtyRef = useRef(false);
+
+  // ページ離脱時の警告
+  useEffect(() => {
+    const msg = "変更が保存されていません。ページを離れますか？";
+
+    // タブ閉じ・リロード
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (isDirtyRef.current) {
+        e.preventDefault();
+      }
+    }
+
+    // リンククリック（ヘッダー、パンくずなど）をキャプチャフェーズで攔截
+    function handleClick(e: MouseEvent) {
+      if (!isDirtyRef.current) return;
+      const anchor = (e.target as HTMLElement).closest("a");
+      if (!anchor || !anchor.href) return;
+      // 外部リンクは beforeunload に任せる
+      if (anchor.origin !== window.location.origin) return;
+      if (!window.confirm(msg)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+    }
+
+    // ブラウザバック・フォワード
+    window.history.pushState(null, "", window.location.href);
+    function handlePopState() {
+      if (isDirtyRef.current) {
+        window.history.pushState(null, "", window.location.href);
+        if (!window.confirm(msg)) return;
+        isDirtyRef.current = false;
+        window.history.back();
+      }
+    }
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("click", handleClick, true);
+    window.addEventListener("popstate", handlePopState);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("click", handleClick, true);
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, []);
 
   // 選択変更時に未確定コードをクリーンアップするラッパー
   function setSelection(next: Selection) {
@@ -139,6 +185,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     const editable = wholeScoreToEditable(initialData);
     dispatch({ type: "INIT", measures: editable });
     setPendingChord(null);
+    isDirtyRef.current = false;
     // 最後の小節の最後のコードを選択
     const visible = editable.filter((m) => !m._destroy);
     const lastMeasure = visible[visible.length - 1];
@@ -215,7 +262,10 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     }
   }
 
+  function markDirty() { isDirtyRef.current = true; }
+
   function handleInsertMeasure(afterTempId: string | null) {
+    markDirty();
     const measureTempId = nextTempId();
     const chordTempId = nextTempId();
     dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
@@ -225,6 +275,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   }
 
   function handleAddChord(measureTempId: string) {
+    markDirty();
     const chordTempId = nextTempId();
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
     setPendingChord({ measureTempId, chordTempId });
@@ -235,6 +286,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     measureTempId: string,
     afterChordTempId: string | null
   ) {
+    markDirty();
     const chordTempId = nextTempId();
     dispatch({
       type: "INSERT_CHORD_AFTER",
@@ -247,6 +299,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   }
 
   function handleRemoveChord(measureTempId: string, chordTempId: string) {
+    markDirty();
     if (
       selection?.type === "chord" &&
       selection.measureTempId === measureTempId &&
@@ -258,6 +311,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   }
 
   function handleRemoveMeasure(measureTempId: string) {
+    markDirty();
     if (selection && "measureTempId" in selection && selection.measureTempId === measureTempId) {
       setSelection(null);
     }
@@ -274,6 +328,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   function handleUpdateField(field: string, value: number | string) {
     if (!selection || selection.type !== "chord") return;
+    markDirty();
     // 鍵盤UIでの編集で未確定コードを確定
     if (pendingChord) setPendingChord(null);
     dispatch({
@@ -301,6 +356,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   function handlePasteMeasure(afterTempId: string | null) {
     if (!clipboard) return;
+    markDirty();
     const measureTempId = nextTempId();
     dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
     if (clipboard.key_name) {
@@ -323,6 +379,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   async function handleSave() {
     const result = await updateScore(scoreSlug, formData, measures, published);
     if (result) {
+      isDirtyRef.current = false;
       router.push(`/scores/${scoreSlug}`);
     }
   }
@@ -383,7 +440,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
         </button>
         {metaOpen && (
           <div className="border-t border-border px-4 py-4">
-            <ScoreMetaForm formData={formData} onChange={setFormData} />
+            <ScoreMetaForm formData={formData} onChange={(v) => { markDirty(); setFormData(v); }} />
           </div>
         )}
       </div>
@@ -391,7 +448,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
       <div className="mt-3">
         <TagInput
           tags={formData.tag_names}
-          onChange={(tag_names) => setFormData({ ...formData, tag_names })}
+          onChange={(tag_names) => { markDirty(); setFormData({ ...formData, tag_names }); }}
         />
       </div>
 
@@ -474,6 +531,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
             <button
               type="button"
               onClick={() => {
+                markDirty();
                 const measureTempId = nextTempId();
                 const chordTempId = nextTempId();
                 dispatch({ type: "ADD_MEASURE", newTempId: measureTempId });
@@ -499,7 +557,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
           <input
             type="checkbox"
             checked={published}
-            onChange={(e) => setPublished(e.target.checked)}
+            onChange={(e) => { markDirty(); setPublished(e.target.checked); }}
             className="h-4 w-4 rounded border-border"
           />
           公開する
@@ -650,6 +708,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                         className="rounded border border-border bg-background px-2 py-1 text-sm"
                         value={selectedMeasureData.key_name ?? ""}
                         onChange={(e) => {
+                          markDirty();
                           dispatch({
                             type: "SET_MEASURE_KEY",
                             measureTempId: selection.measureTempId,
