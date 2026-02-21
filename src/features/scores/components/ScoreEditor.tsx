@@ -504,8 +504,42 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
                   ▶
                 </button>
               </div>
-              {/* 右: バランス用 */}
-              <div className="w-16" />
+              {/* 右: コード追加 + 小節追加 */}
+              <div className="flex w-16 items-center justify-end gap-1">
+                {selection && "measureTempId" in selection && (
+                  <button
+                    type="button"
+                    title="コードを追加"
+                    onClick={() => {
+                      if (selection.type === "chord") {
+                        handleInsertChord(selection.measureTempId, selection.chordTempId);
+                      } else {
+                        handleAddChord(selection.measureTempId);
+                      }
+                    }}
+                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                  >
+                    +♩
+                  </button>
+                )}
+                {selection && (
+                  <button
+                    type="button"
+                    title="小節を追加"
+                    onClick={() => {
+                      const afterId = selection.type === "bar_line"
+                        ? selection.afterMeasureTempId
+                        : "measureTempId" in selection
+                          ? selection.measureTempId
+                          : null;
+                      handleInsertMeasure(afterId);
+                    }}
+                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                  >
+                    +𝄁
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* アクションパネル: 選択状態に応じて切り替え */}
