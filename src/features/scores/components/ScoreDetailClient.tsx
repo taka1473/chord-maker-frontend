@@ -4,10 +4,16 @@ import { useAuth } from "@/features/auth";
 import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ChordChart } from "@/features/scores/components/ChordChart";
+import type { WholeScore } from "@/features/scores/types";
 
-export function ScoreDetailClient({ slug }: { slug: string }) {
+type Props = {
+  slug: string;
+  initialData?: WholeScore | null;
+};
+
+export function ScoreDetailClient({ slug, initialData }: Props) {
   const { user } = useAuth();
-  const { wholeScore, error, loading } = useWholeScore(slug);
+  const { wholeScore, error, loading } = useWholeScore(slug, initialData ?? undefined);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">

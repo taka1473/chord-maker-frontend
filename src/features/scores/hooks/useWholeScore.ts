@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { WholeScore } from "@/features/scores/types";
 
-export function useWholeScore(slug: string) {
-  const [wholeScore, setWholeScore] = useState<WholeScore | null>(null);
+export function useWholeScore(slug: string, serverData?: WholeScore) {
+  const [wholeScore, setWholeScore] = useState<WholeScore | null>(serverData ?? null);
   const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!serverData);
 
   useEffect(() => {
+    if (serverData) return;
+
     let cancelled = false;
 
     async function fetchWholeScore() {
@@ -38,7 +40,7 @@ export function useWholeScore(slug: string) {
     return () => {
       cancelled = true;
     };
-  }, [slug]);
+  }, [slug, serverData]);
 
   return { wholeScore, error, loading };
 }

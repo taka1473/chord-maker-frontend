@@ -43,6 +43,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ScoreDetailPage({ params }: Props) {
   const { slug } = await params;
+  const wholeScore = await fetchWholeScoreServer(slug);
 
-  return <ScoreDetailClient slug={slug} />;
+  return <ScoreDetailClient slug={slug} initialData={wholeScore} />;
 }
