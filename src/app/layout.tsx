@@ -14,9 +14,23 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
+
 export const metadata: Metadata = {
-  title: "Chord Maker",
+  title: {
+    default: "Chord Maker",
+    template: "%s | Chord Maker",
+  },
   description: "コード譜を作成・共有するプラットフォーム",
+  metadataBase: new URL(siteUrl),
+  openGraph: {
+    siteName: "Chord Maker",
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+  },
 };
 
 export default function RootLayout({

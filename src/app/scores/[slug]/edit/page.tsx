@@ -1,47 +1,17 @@
-"use client";
+import type { Metadata } from "next";
+import { EditScoreClient } from "@/features/scores/components/EditScoreClient";
 
-import { use } from "react";
-import { AuthGuard } from "@/features/auth";
-import { ButtonLink } from "@/features/shared";
-import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
-import { ScoreEditor } from "@/features/scores/components/ScoreEditor";
+export const metadata: Metadata = {
+  title: "スコアを編集",
+  robots: { index: false, follow: false },
+};
 
-function EditScoreContent({ slug }: { slug: string }) {
-  const { wholeScore, error, loading } = useWholeScore(slug);
-
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-4">
-      <ButtonLink
-        href={`/scores/${slug}`}
-        variant="ghost"
-        className="mb-3 inline-block"
-      >
-        &larr; 詳細に戻る
-      </ButtonLink>
-
-      {loading && (
-        <p className="text-center text-muted">読み込み中...</p>
-      )}
-
-      {error && <p className="text-center text-destructive">{error}</p>}
-
-      {wholeScore && (
-        <ScoreEditor scoreSlug={wholeScore.slug} initialData={wholeScore} />
-      )}
-    </div>
-  );
-}
-
-export default function EditScorePage({
-  params,
-}: {
+type Props = {
   params: Promise<{ slug: string }>;
-}) {
-  const { slug } = use(params);
+};
 
-  return (
-    <AuthGuard>
-      <EditScoreContent slug={slug} />
-    </AuthGuard>
-  );
+export default async function EditScorePage({ params }: Props) {
+  const { slug } = await params;
+
+  return <EditScoreClient slug={slug} />;
 }

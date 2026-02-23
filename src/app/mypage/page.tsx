@@ -1,7 +1,11 @@
-"use client";
-
+import type { Metadata } from "next";
 import { AuthGuard, ProfileEditor } from "@/features/auth";
 import { MyScoreList } from "@/features/scores/components/MyScoreList";
+
+export const metadata: Metadata = {
+  title: "マイページ",
+  robots: { index: false, follow: false },
+};
 
 function MyPageContent() {
   return (

@@ -1,43 +1,48 @@
-"use client";
+import type { Metadata } from "next";
+import { fetchWholeScoreServer } from "@/lib/fetch-score";
+import { ScoreDetailClient } from "@/features/scores/components/ScoreDetailClient";
 
-import { use } from "react";
-import { useAuth } from "@/features/auth";
-import { ButtonLink } from "@/features/shared";
-import { useWholeScore, ChordChart } from "@/features/scores";
-
-export default function ScoreDetailPage({
-  params,
-}: {
+type Props = {
   params: Promise<{ slug: string }>;
-}) {
-  const { slug } = use(params);
-  const { user } = useAuth();
-  const { wholeScore, error, loading } = useWholeScore(slug);
+};
 
-  return (
-    <div className="mx-auto max-w-4xl px-4 py-4">
-      <ButtonLink href="/" variant="ghost" className="mb-3 inline-block">
-        &larr; スコア一覧に戻る
-      </ButtonLink>
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const score = await fetchWholeScoreServer(slug);
 
-      {loading && (
-        <p className="text-center text-muted">読み込み中...</p>
-      )}
+  if (!score) {
+    return { title: "スコアが見つかりません" };
+  }
 
-      {error && <p className="text-center text-destructive">{error}</p>}
+  const title = score.artist
+    ? `${score.title} - ${score.artist}`
+    : score.title;
 
-      {wholeScore && (
-        <>
-          <ChordChart wholeScore={wholeScore} />
-          {user && (
-            <div className="mt-6">
-              <ButtonLink href={`/scores/${slug}/edit`}>
-                編集
-              </ButtonLink>
-            </div>
-          )}
-        </>
-      )}
-    </div>
-  );
+  const descriptionParts = [
+    `Key: ${score.key_name}`,
+    score.tempo ? `BPM: ${score.tempo}` : null,
+    score.time_signature ? `拍子: ${score.time_signature}` : null,
+  ].filter(Boolean);
+
+  const description = `${score.title}のコード譜。${descriptionParts.join(" / ")}`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: "music.song",
+    },
+    twitter: {
+      title,
+      description,
+    },
+  };
+}
+
+export default async function ScoreDetailPage({ params }: Props) {
+  const { slug } = await params;
+
+  return <ScoreDetailClient slug={slug} />;
 }
