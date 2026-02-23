@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useProfile } from "@/features/auth/hooks/useProfile";
 import { Button, Card, Input, Label } from "@/features/shared";
 
@@ -9,11 +9,11 @@ export function ProfileEditor() {
   const [name, setName] = useState("");
   const [success, setSuccess] = useState(false);
 
-  useEffect(() => {
-    if (profile) {
-      setName(profile.name);
-    }
-  }, [profile]);
+  const [prevProfile, setPrevProfile] = useState(profile);
+  if (profile && profile !== prevProfile) {
+    setPrevProfile(profile);
+    setName(profile.name);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

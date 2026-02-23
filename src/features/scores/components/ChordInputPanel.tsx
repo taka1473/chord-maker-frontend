@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import type { EditableChord } from "@/features/scores/types";
-import { formatChord } from "@/features/scores/types";
 import { PianoKeyboard } from "@/features/scores/components/PianoKeyboard";
 import { ChordTypeSelector } from "@/features/scores/components/ChordTypeSelector";
 
@@ -26,9 +25,11 @@ export function ChordInputPanel({
   const [noteMode, setNoteMode] = useState<NoteMode>("root");
 
   // コード選択が変わったらルート音モードに戻す
-  useEffect(() => {
+  const [prevChordTempId, setPrevChordTempId] = useState(chord?.tempId);
+  if (chord?.tempId !== prevChordTempId) {
+    setPrevChordTempId(chord?.tempId);
     setNoteMode("root");
-  }, [chord?.tempId]);
+  }
 
   if (!chord) {
     return (

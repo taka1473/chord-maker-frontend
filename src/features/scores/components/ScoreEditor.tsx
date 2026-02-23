@@ -181,11 +181,12 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     setSelectionRaw(next);
   }
 
-  useEffect(() => {
+  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  if (initialData !== prevInitialData) {
+    setPrevInitialData(initialData);
     const editable = wholeScoreToEditable(initialData);
     dispatch({ type: "INIT", measures: editable });
     setPendingChord(null);
-    isDirtyRef.current = false;
     // 最後の小節の最後のコードを選択
     const visible = editable.filter((m) => !m._destroy);
     const lastMeasure = visible[visible.length - 1];
@@ -196,7 +197,11 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     } else {
       setSelectionRaw(null);
     }
-    // ページ下部までスクロール
+  }
+
+  // 初期データ変更時: dirty フラグリセット + ページ下部スクロール
+  useEffect(() => {
+    isDirtyRef.current = false;
     requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
   }, [initialData]);
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import type { WholeScore } from "@/features/scores/types";
 import {
@@ -15,22 +15,16 @@ type ChordChartProps = {
   wholeScore: WholeScore;
 };
 
-export function ChordChart({ wholeScore }: ChordChartProps) {
-  const [selectedKeyName, setSelectedKeyName] = useState(wholeScore.key_name);
-
-  const selectedKeyNumber = keyNameToNumber(selectedKeyName);
-  const transposition = ((selectedKeyNumber - wholeScore.key) % 12 + 12) % 12;
-  const selectedUseFlats = isFlatKey(selectedKeyName);
-
-  const sortedMeasures = [...wholeScore.measures].sort(
-    (a, b) => a.position - b.position
-  );
-
-  // 有効キーを小節順に走査して決定（転調オフセットを適用）
-  let currentKey = (wholeScore.key + transposition) % 12;
+function buildMeasuresRenderable(
+  sortedMeasures: WholeScore["measures"],
+  baseKey: number,
+  transposition: number,
+  selectedUseFlats: boolean,
+) {
+  let currentKey = (baseKey + transposition) % 12;
   let currentFlats = selectedUseFlats;
 
-  const measuresRenderable = sortedMeasures.map((measure) => {
+  return sortedMeasures.map((measure) => {
     if (measure.key_name && measure.key != null) {
       currentKey = (measure.key + transposition) % 12;
       currentFlats = isFlatKey(
@@ -46,6 +40,24 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
         : null,
     };
   });
+}
+
+export function ChordChart({ wholeScore }: ChordChartProps) {
+  const [selectedKeyName, setSelectedKeyName] = useState(wholeScore.key_name);
+
+  const selectedKeyNumber = keyNameToNumber(selectedKeyName);
+  const transposition = ((selectedKeyNumber - wholeScore.key) % 12 + 12) % 12;
+  const selectedUseFlats = isFlatKey(selectedKeyName);
+
+  const sortedMeasures = [...wholeScore.measures].sort(
+    (a, b) => a.position - b.position
+  );
+
+  // 有効キーを小節順に走査して決定（転調オフセットを適用）
+  const measuresRenderable = useMemo(
+    () => buildMeasuresRenderable(sortedMeasures, wholeScore.key, transposition, selectedUseFlats),
+    [sortedMeasures, wholeScore.key, transposition, selectedUseFlats],
+  );
 
   return (
     <div>
