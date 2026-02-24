@@ -18,13 +18,13 @@ const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3001";
 
 export const metadata: Metadata = {
   title: {
-    default: "Chord Maker",
-    template: "%s | Chord Maker",
+    default: "Chordlet",
+    template: "%s | Chordlet",
   },
   description: "コード譜を作成・共有するプラットフォーム",
   metadataBase: new URL(siteUrl),
   openGraph: {
-    siteName: "Chord Maker",
+    siteName: "Chordlet",
     locale: "ja_JP",
     type: "website",
   },

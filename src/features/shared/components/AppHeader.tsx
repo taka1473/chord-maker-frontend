@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useAuth, useSignOut } from "@/features/auth";
 import { Button, ButtonLink } from "./Button";
 
@@ -44,9 +46,9 @@ export function AppHeader() {
   return (
     <header className="border-b border-border px-4 py-3">
       <div className="mx-auto flex max-w-4xl items-center justify-between">
-        <ButtonLink href="/" variant="ghost" className="text-lg font-bold text-foreground">
-          Chord Maker
-        </ButtonLink>
+        <Link href="/">
+          <Image src="/logo.png" alt="Chordlet" width={108} height={40} priority />
+        </Link>
         <nav className="flex items-center gap-1.5 sm:gap-3">
           {user ? (
             <>
