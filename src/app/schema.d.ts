@@ -14,38 +14,90 @@ export interface paths {
         /** list scores */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    /** @description Search by title or artist */
+                    search?: string;
+                    /** @description Filter by tag names (AND) */
+                    "tags[]"?: unknown[];
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
             };
             requestBody?: never;
             responses: {
-                /** @description successful */
+                /** @description filtered by tags */
                 200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content: {
-                        "application/json": components["schemas"]["Score"][];
-                    };
+                    content?: never;
                 };
             };
         };
         put?: never;
-        post?: never;
+        /** create score */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Firebase ID Token */
+                    Authorization: string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        score?: {
+                            title: string;
+                            key_name: string;
+                            tempo?: number;
+                            time_signature?: string;
+                            published?: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description score created with minimal data */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Score"];
+                    };
+                };
+                /** @description unauthorized */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description validation errors */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/api/scores/{id}": {
+    "/api/scores/{id}/whole_score": {
         parameters: {
             query?: never;
             header?: never;
             path: {
-                /** @description id */
+                /** @description slug */
                 id: string;
             };
             cookie?: never;
@@ -56,7 +108,7 @@ export interface paths {
                 query?: never;
                 header?: never;
                 path: {
-                    /** @description id */
+                    /** @description slug */
                     id: string;
                 };
                 cookie?: never;
@@ -89,6 +141,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/scores/{id}/upsert_whole_score": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                /** @description slug of existing score */
+                id: string;
+            };
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** upsert whole score */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Firebase ID Token */
+                    Authorization: string;
+                };
+                path: {
+                    /** @description slug of existing score */
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": {
+                        score?: {
+                            title?: string;
+                            key_name?: string;
+                            tempo?: number;
+                            time_signature?: string;
+                            published?: boolean;
+                            measures_attributes?: {
+                                id?: number;
+                                position?: number;
+                                _destroy?: boolean;
+                                chords_attributes?: {
+                                    id?: number;
+                                    position?: number;
+                                    root_offset?: number;
+                                    bass_offset?: number;
+                                    chord_type?: string;
+                                    _destroy?: boolean;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description upsert score with deleting measures and chords */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            id?: number;
+                            title?: string;
+                            key?: number;
+                            key_name?: string;
+                            tempo?: number | null;
+                            time_signature?: string | null;
+                            measures?: {
+                                id?: number;
+                                position?: number;
+                                chords?: {
+                                    id?: number;
+                                    position?: number;
+                                    root_offset?: number;
+                                    bass_offset?: number;
+                                    chord_type?: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description score not found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description validation errors */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -96,11 +250,41 @@ export interface components {
         Score: {
             id: number;
             title: string;
+            /** @description Key as integer (0: A, 1: A#, etc.) */
             key: number;
+            /** @description Key name distinguishing A# from Bb */
             key_name: string;
+            /** @description Beats per minute */
             tempo: number | null;
+            /** @description Time signature (e.g., 4/4) */
             time_signature: string | null;
+            /** @description Song lyrics */
+            lyrics: string | null;
+            /** @description Array of measures containing chords */
+            measures?: components["schemas"]["Measure"][];
         };
+        Measure: {
+            /** @description Unique identifier for the measure */
+            id: number;
+            /** @description Position of the measure in the score */
+            position: number;
+            /** @description Array of chords in this measure */
+            chords: components["schemas"]["Chord"][];
+        };
+        Chord: {
+            /** @description Unique identifier for the chord */
+            id: number;
+            /** @description Position of the chord within the measure */
+            position: number;
+            /** @description Root note offset (0-11, where 0=A, 1=A#, etc.) */
+            root_offset: number;
+            /** @description Bass note offset (0-11, where 0=A, 1=A#, etc.) */
+            bass_offset: number;
+            /** @description Type of chord (e.g., major, minor, dominant7) */
+            chord_type: string;
+        };
+        /** @enum {string} */
+        ChordType: "major" | "minor" | "7" | "maj7" | "min7" | "min7-5" | "dim" | "dim7" | "aug" | "sus2" | "sus4" | "add9";
     };
     responses: never;
     parameters: never;
