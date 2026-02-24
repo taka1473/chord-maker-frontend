@@ -181,7 +181,7 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
     setSelectionRaw(next);
   }
 
-  const [prevInitialData, setPrevInitialData] = useState(initialData);
+  const [prevInitialData, setPrevInitialData] = useState<WholeScore | null>(null);
   if (initialData !== prevInitialData) {
     setPrevInitialData(initialData);
     const editable = wholeScoreToEditable(initialData);
