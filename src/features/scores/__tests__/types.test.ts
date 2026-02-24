@@ -64,19 +64,16 @@ describe("getChordTypeSuffix", () => {
   });
 
   it("returns correct suffix for each type", () => {
+    expect(getChordTypeSuffix("7")).toBe("7");
+    expect(getChordTypeSuffix("maj7")).toBe("M7");
+    expect(getChordTypeSuffix("min7")).toBe("m7");
+    expect(getChordTypeSuffix("min7-5")).toBe("m7-5");
     expect(getChordTypeSuffix("dim")).toBe("dim");
+    expect(getChordTypeSuffix("dim7")).toBe("dim7");
     expect(getChordTypeSuffix("aug")).toBe("aug");
     expect(getChordTypeSuffix("sus2")).toBe("sus2");
     expect(getChordTypeSuffix("sus4")).toBe("sus4");
     expect(getChordTypeSuffix("add9")).toBe("add9");
-    expect(getChordTypeSuffix("maj7")).toBe("M7");
-    expect(getChordTypeSuffix("min7")).toBe("m7");
-    expect(getChordTypeSuffix("dim7")).toBe("dim7");
-    expect(getChordTypeSuffix("aug7")).toBe("aug7");
-  });
-
-  it("returns the type itself for unknown types", () => {
-    expect(getChordTypeSuffix("unknown")).toBe("unknown");
   });
 });
 

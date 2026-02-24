@@ -1,8 +1,8 @@
-import { CHORD_TYPES, getChordTypeSuffix } from "@/features/scores/types";
+import { CHORD_TYPES, getChordTypeSuffix, type ChordType } from "@/features/scores/types";
 
 type ChordTypeSelectorProps = {
-  selectedType: string | null;
-  onSelect: (type: string) => void;
+  selectedType: ChordType | null;
+  onSelect: (type: ChordType) => void;
 };
 
 export function ChordTypeSelector({

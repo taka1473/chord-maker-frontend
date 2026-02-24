@@ -1,3 +1,7 @@
+import type { components } from "@/app/schema";
+
+export type ChordType = components["schemas"]["ChordType"];
+
 export type Score = {
   id: number;
   slug: string;
@@ -18,7 +22,7 @@ export type Chord = {
   position: number;
   root_offset: number;
   bass_offset: number;
-  chord_type: string;
+  chord_type: ChordType;
 };
 
 export type Measure = {
@@ -53,18 +57,19 @@ const NOTE_NAMES_FLAT = [
   "A", "Bb", "B", "C", "Db", "D", "Eb", "E", "F", "Gb", "G", "Ab",
 ] as const;
 
-const CHORD_TYPE_SUFFIX: Record<string, string> = {
+const CHORD_TYPE_SUFFIX: Record<ChordType, string> = {
   major: "",
   minor: "m",
+  "7": "7",
+  maj7: "M7",
+  min7: "m7",
+  "min7-5": "m7-5",
   dim: "dim",
+  dim7: "dim7",
   aug: "aug",
   sus2: "sus2",
   sus4: "sus4",
   add9: "add9",
-  maj7: "M7",
-  min7: "m7",
-  dim7: "dim7",
-  aug7: "aug7",
 };
 
 export function getNoteName(offset: number, scoreKey: number, useFlats = false): string {
@@ -77,8 +82,8 @@ export function isFlatKey(keyName: string): boolean {
   return keyName === "F" || keyName.includes("b");
 }
 
-export function getChordTypeSuffix(chordType: string): string {
-  return CHORD_TYPE_SUFFIX[chordType] ?? chordType;
+export function getChordTypeSuffix(chordType: ChordType): string {
+  return CHORD_TYPE_SUFFIX[chordType];
 }
 
 // --- エディタ用の型 ---
@@ -89,7 +94,7 @@ export type EditableChord = {
   position: number;
   root_offset: number;
   bass_offset: number;
-  chord_type: string;
+  chord_type: ChordType;
   _destroy?: boolean;
 };
 
@@ -117,9 +122,10 @@ export const KEY_NAMES = [
   "C", "C#", "Db", "D", "D#", "Eb", "E", "F", "F#", "Gb", "G", "G#", "Ab", "A", "A#", "Bb", "B",
 ] as const;
 
-export const CHORD_TYPES = [
-  "major", "minor", "dim", "aug", "sus2", "sus4", "add9", "maj7", "min7", "dim7", "aug7",
-] as const;
+export const CHORD_TYPES: readonly ChordType[] = [
+  "major", "minor", "7", "maj7", "min7", "min7-5",
+  "dim", "dim7", "aug", "sus2", "sus4", "add9",
+];
 
 export const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8"] as const;
 

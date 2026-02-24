@@ -26,6 +26,7 @@ export {
 export type {
   Score,
   Chord,
+  ChordType,
   Measure,
   WholeScore,
   EditableChord,

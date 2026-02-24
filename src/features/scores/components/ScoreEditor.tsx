@@ -12,6 +12,7 @@ import type {
   ScoreFormData,
   EditableMeasure,
   EditableChord,
+  ChordType,
 } from "@/features/scores/types";
 import { KEY_NAMES, isFlatKey, formatChord } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
@@ -60,7 +61,7 @@ function BarLine({ onClick, onPaste, hasClipboard, isSelected, hideBar }: { onCl
 
 type ClipboardMeasure = {
   key_name?: string | null;
-  chords: { root_offset: number; bass_offset: number; chord_type: string }[];
+  chords: { root_offset: number; bass_offset: number; chord_type: ChordType }[];
 };
 
 // --- Constants ---
