@@ -2,13 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { AuthGuard } from "@/features/auth";
 import { Button, ButtonLink } from "@/features/shared";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { useCreateScore } from "@/features/scores/hooks/useCreateScore";
 import type { ScoreFormData } from "@/features/scores/types";
 
-function NewScoreContent() {
+export function NewScoreClient() {
   const router = useRouter();
   const { createScore, error, loading } = useCreateScore();
 
@@ -25,7 +24,11 @@ function NewScoreContent() {
     e.preventDefault();
     const score = await createScore(formData);
     if (score) {
-      router.push(`/scores/${score.slug}/edit`);
+      const path = `/scores/${score.slug}/edit`;
+      const url = score.guest_token
+        ? `${path}?token=${encodeURIComponent(score.guest_token)}`
+        : path;
+      router.push(url);
     }
   }
 
@@ -49,13 +52,5 @@ function NewScoreContent() {
         </div>
       </form>
     </div>
-  );
-}
-
-export function NewScoreClient() {
-  return (
-    <AuthGuard>
-      <NewScoreContent />
-    </AuthGuard>
   );
 }

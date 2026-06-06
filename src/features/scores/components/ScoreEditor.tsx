@@ -7,6 +7,8 @@ import { TagInput } from "@/features/scores/components/TagInput";
 import { MeasureEditor } from "@/features/scores/components/MeasureEditor";
 import { ChordInputPanel } from "@/features/scores/components/ChordInputPanel";
 import { useUpdateScore } from "@/features/scores/hooks/useUpdateScore";
+import { useClaimScore } from "@/features/scores/hooks/useClaimScore";
+import { useAuth } from "@/features/auth/contexts/AuthContext";
 import type {
   WholeScore,
   ScoreFormData,
@@ -77,6 +79,7 @@ const KEY_MAP: Record<string, number> = {
 type ScoreEditorProps = {
   scoreSlug: string;
   initialData: WholeScore;
+  guestToken?: string | null;
 };
 
 function wholeScoreToEditable(ws: WholeScore): EditableMeasure[] {
@@ -103,10 +106,14 @@ function resolveKeyName(ws: WholeScore): string {
   return KEY_NAMES[0];
 }
 
-export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
+export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorProps) {
   const router = useRouter();
   const { updateScore, error, loading } = useUpdateScore();
+  const { claimScore, loading: claimLoading } = useClaimScore();
+  const { user } = useAuth();
   const cols = 4;
+  const [showLoginPromo, setShowLoginPromo] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const [formData, setFormData] = useState<ScoreFormData>({
     title: initialData.title,
@@ -383,11 +390,32 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
   }
 
   async function handleSave() {
-    const result = await updateScore(scoreSlug, formData, measures, published);
+    const result = await updateScore(scoreSlug, formData, measures, published, guestToken);
     if (result) {
       isDirtyRef.current = false;
-      router.push(`/scores/${scoreSlug}`);
+      if (guestToken) {
+        setShowLoginPromo(true);
+      } else {
+        router.push(`/scores/${scoreSlug}`);
+      }
     }
+  }
+
+  async function handleClaim() {
+    if (!guestToken) return;
+    const result = await claimScore(scoreSlug, guestToken);
+    if (result) {
+      router.push(`/scores/${scoreSlug}/edit`);
+    }
+  }
+
+  function handleCopyUrl() {
+    if (!guestToken) return;
+    const url = `${window.location.origin}/scores/${scoreSlug}/edit?token=${encodeURIComponent(guestToken)}`;
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   }
 
   // BarLine の選択判定ヘルパー
@@ -417,6 +445,81 @@ export function ScoreEditor({ scoreSlug, initialData }: ScoreEditorProps) {
 
   return (
     <div>
+      {/* ゲストスコアバナー */}
+      {guestToken && (
+        <div className="mb-4 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 dark:border-amber-700 dark:bg-amber-950/30">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
+                このスコアの編集URL（30日間有効）
+              </p>
+              <p className="mt-0.5 break-all text-xs text-amber-700 dark:text-amber-400">
+                このURLを保存しておくと後で編集できます
+              </p>
+              <div className="mt-2 flex items-center gap-2">
+                <code className="min-w-0 flex-1 truncate rounded bg-amber-100 px-2 py-1 text-xs dark:bg-amber-900/50">
+                  {typeof window !== "undefined"
+                    ? `${window.location.origin}/scores/${scoreSlug}/edit?token=${encodeURIComponent(guestToken!)}`
+                    : ""}
+                </code>
+                <button
+                  type="button"
+                  onClick={handleCopyUrl}
+                  className="shrink-0 rounded border border-amber-300 px-2 py-1 text-xs text-amber-700 transition-colors hover:bg-amber-100 dark:border-amber-600 dark:text-amber-400 dark:hover:bg-amber-900/50"
+                >
+                  {copied ? "コピー済" : "コピー"}
+                </button>
+              </div>
+            </div>
+            {user && (
+              <button
+                type="button"
+                onClick={handleClaim}
+                disabled={claimLoading}
+                className="shrink-0 rounded bg-amber-600 px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:ml-4"
+              >
+                {claimLoading ? "移行中..." : "自分のアカウントに移す"}
+              </button>
+            )}
+          </div>
+          {!user && (
+            <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+              <a href="/login" className="font-medium underline">ログイン</a>するとスコアを自分のアカウントに移して無期限保存・マイページ管理ができます
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* ログイン促進ポップアップ */}
+      {showLoginPromo && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="w-full max-w-sm rounded-xl bg-background p-6 shadow-xl">
+            <h2 className="text-lg font-bold">保存しました！</h2>
+            <p className="mt-2 text-sm text-muted">ログインすることで次のことができるようになります：</p>
+            <ul className="mt-3 space-y-1 text-sm">
+              <li className="flex items-center gap-2"><span className="text-primary">✓</span> 無期限でスコアを保存</li>
+              <li className="flex items-center gap-2"><span className="text-primary">✓</span> マイページで一覧管理</li>
+              <li className="flex items-center gap-2"><span className="text-primary">✓</span> スコアを公開してシェア</li>
+            </ul>
+            <div className="mt-5 flex gap-3">
+              <a
+                href="/login"
+                className="flex-1 rounded bg-primary px-4 py-2 text-center text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+              >
+                ログインはこちら
+              </a>
+              <button
+                type="button"
+                onClick={() => { setShowLoginPromo(false); router.push(`/scores/${scoreSlug}`); }}
+                className="flex-1 rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+              >
+                閉じる
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* メタ情報アコーディオン */}
       <div className="rounded-lg border border-border">
         <button

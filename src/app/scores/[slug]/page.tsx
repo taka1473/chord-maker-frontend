@@ -4,6 +4,7 @@ import { ScoreDetailClient } from "@/features/scores/components/ScoreDetailClien
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ token?: string }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -41,9 +42,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function ScoreDetailPage({ params }: Props) {
+export default async function ScoreDetailPage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { token } = await searchParams;
   const wholeScore = await fetchWholeScoreServer(slug);
 
-  return <ScoreDetailClient slug={slug} initialData={wholeScore} />;
+  return (
+    <ScoreDetailClient
+      slug={slug}
+      initialData={wholeScore}
+      guestToken={token ?? null}
+    />
+  );
 }

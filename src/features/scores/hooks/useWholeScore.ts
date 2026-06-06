@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api-client";
 import type { WholeScore } from "@/features/scores/types";
 
-export function useWholeScore(slug: string, serverData?: WholeScore) {
+export function useWholeScore(slug: string, guestToken?: string | null, serverData?: WholeScore) {
   const [wholeScore, setWholeScore] = useState<WholeScore | null>(serverData ?? null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!serverData);
@@ -16,9 +16,10 @@ export function useWholeScore(slug: string, serverData?: WholeScore) {
 
     async function fetchWholeScore() {
       try {
+        const query = guestToken ? `?guest_token=${encodeURIComponent(guestToken)}` : "";
         const data = await apiClient<WholeScore>(
-          `/api/scores/${slug}/whole_score`,
-          { requireAuth: "optional" }
+          `/api/scores/${slug}/whole_score${query}`,
+          { requireAuth: guestToken ? false : "optional" }
         );
         if (!cancelled) {
           setWholeScore(data);
@@ -40,7 +41,7 @@ export function useWholeScore(slug: string, serverData?: WholeScore) {
     return () => {
       cancelled = true;
     };
-  }, [slug, serverData]);
+  }, [slug, guestToken, serverData]);
 
   return { wholeScore, error, loading };
 }

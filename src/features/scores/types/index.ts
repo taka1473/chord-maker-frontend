@@ -15,6 +15,7 @@ export type Score = {
   created_at: string;
   published: boolean;
   tag_names: string[];
+  guest_token?: string | null;
 };
 
 export type Chord = {

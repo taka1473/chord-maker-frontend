@@ -24,7 +24,7 @@ export function useCreateScore() {
             tag_names: formData.tag_names.length > 0 ? formData.tag_names : undefined,
           },
         },
-        requireAuth: true,
+        requireAuth: "optional",
       });
       return score;
     } catch (e) {

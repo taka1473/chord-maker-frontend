@@ -9,11 +9,16 @@ import type { WholeScore } from "@/features/scores/types";
 type Props = {
   slug: string;
   initialData?: WholeScore | null;
+  guestToken?: string | null;
 };
 
-export function ScoreDetailClient({ slug, initialData }: Props) {
+export function ScoreDetailClient({ slug, initialData, guestToken = null }: Props) {
   const { user } = useAuth();
-  const { wholeScore, error, loading } = useWholeScore(slug, initialData ?? undefined);
+  const { wholeScore, error, loading } = useWholeScore(slug, guestToken, initialData ?? undefined);
+
+  const editHref = guestToken
+    ? `/scores/${slug}/edit?token=${encodeURIComponent(guestToken)}`
+    : `/scores/${slug}/edit`;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">
@@ -30,9 +35,9 @@ export function ScoreDetailClient({ slug, initialData }: Props) {
       {wholeScore && (
         <>
           <ChordChart wholeScore={wholeScore} />
-          {user && (
+          {(user || guestToken) && (
             <div className="mt-6">
-              <ButtonLink href={`/scores/${slug}/edit`}>
+              <ButtonLink href={editHref}>
                 編集
               </ButtonLink>
             </div>

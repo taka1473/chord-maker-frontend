@@ -34,28 +34,31 @@ export function useUpdateScore() {
       slug: string,
       formData: ScoreFormData,
       measures: EditableMeasure[],
-      published: boolean
+      published: boolean,
+      guestToken?: string | null
     ) => {
       setError(null);
       setLoading(true);
       try {
+        const body: Record<string, unknown> = {
+          score: {
+            title: formData.title,
+            artist: formData.artist || null,
+            key_name: formData.key_name,
+            tempo: formData.tempo ? Number(formData.tempo) : null,
+            time_signature: formData.time_signature || null,
+            published,
+            tag_names: formData.tag_names,
+            measures_attributes: toMeasuresAttributes(measures),
+          },
+        };
+        if (guestToken) body["guest_token"] = guestToken;
         const result = await apiClient<WholeScore>(
           `/api/scores/${slug}/upsert_whole_score`,
           {
             method: "PATCH",
-            body: {
-              score: {
-                title: formData.title,
-                artist: formData.artist || null,
-                key_name: formData.key_name,
-                tempo: formData.tempo ? Number(formData.tempo) : null,
-                time_signature: formData.time_signature || null,
-                published,
-                tag_names: formData.tag_names,
-                measures_attributes: toMeasuresAttributes(measures),
-              },
-            },
-            requireAuth: true,
+            body,
+            requireAuth: guestToken ? false : true,
           }
         );
         return result;

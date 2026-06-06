@@ -1,12 +1,16 @@
 "use client";
 
-import { AuthGuard } from "@/features/auth";
 import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ScoreEditor } from "@/features/scores/components/ScoreEditor";
 
-function EditScoreContent({ slug }: { slug: string }) {
-  const { wholeScore, error, loading } = useWholeScore(slug);
+type Props = {
+  slug: string;
+  guestToken: string | null;
+};
+
+function EditScoreContent({ slug, guestToken }: Props) {
+  const { wholeScore, error, loading } = useWholeScore(slug, guestToken);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">
@@ -25,16 +29,16 @@ function EditScoreContent({ slug }: { slug: string }) {
       {error && <p className="text-center text-destructive">{error}</p>}
 
       {wholeScore && (
-        <ScoreEditor scoreSlug={wholeScore.slug} initialData={wholeScore} />
+        <ScoreEditor
+          scoreSlug={wholeScore.slug}
+          initialData={wholeScore}
+          guestToken={guestToken}
+        />
       )}
     </div>
   );
 }
 
-export function EditScoreClient({ slug }: { slug: string }) {
-  return (
-    <AuthGuard>
-      <EditScoreContent slug={slug} />
-    </AuthGuard>
-  );
+export function EditScoreClient({ slug, guestToken }: Props) {
+  return <EditScoreContent slug={slug} guestToken={guestToken} />;
 }

@@ -8,10 +8,12 @@ export const metadata: Metadata = {
 
 type Props = {
   params: Promise<{ slug: string }>;
+  searchParams: Promise<{ token?: string }>;
 };
 
-export default async function EditScorePage({ params }: Props) {
+export default async function EditScorePage({ params, searchParams }: Props) {
   const { slug } = await params;
+  const { token } = await searchParams;
 
-  return <EditScoreClient slug={slug} />;
+  return <EditScoreClient slug={slug} guestToken={token ?? null} />;
 }
