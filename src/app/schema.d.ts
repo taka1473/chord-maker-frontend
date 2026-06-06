@@ -61,7 +61,7 @@ export interface paths {
                 };
             };
             responses: {
-                /** @description score created with minimal data */
+                /** @description guest score created without auth */
                 201: {
                     headers: {
                         [name: string]: unknown;
@@ -69,13 +69,6 @@ export interface paths {
                     content: {
                         "application/json": components["schemas"]["Score"];
                     };
-                };
-                /** @description unauthorized */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
                 };
                 /** @description validation errors */
                 422: {
