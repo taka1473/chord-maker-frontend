@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ScoreList } from "@/features/scores";
+import { HeroSection } from "./_components/HeroSection";
 
 export const metadata: Metadata = {
   title: "コード譜一覧",
@@ -13,10 +14,13 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <div className="mx-auto max-w-4xl px-4 py-4">
-      <Suspense>
-        <ScoreList />
-      </Suspense>
-    </div>
+    <>
+      <HeroSection />
+      <div className="mx-auto max-w-4xl px-4 py-4">
+        <Suspense>
+          <ScoreList />
+        </Suspense>
+      </div>
+    </>
   );
 }

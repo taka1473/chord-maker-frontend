@@ -40,7 +40,7 @@ function IconLogin() {
 }
 
 export function AppHeader() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const { signOut } = useSignOut();
 
   return (
@@ -50,34 +50,38 @@ export function AppHeader() {
           <Image src="/logo.png" alt="Chordlet" width={108} height={40} priority />
         </Link>
         <nav className="flex items-center gap-1.5 sm:gap-3">
-          {user ? (
+          {!loading && (
             <>
-              <ButtonLink href="/mypage" variant="secondary" size="sm" title="マイページ">
-                <span className="flex items-center gap-1">
-                  <IconUser />
-                  <span className="hidden sm:inline">マイページ</span>
-                </span>
-              </ButtonLink>
+              {user && (
+                <ButtonLink href="/mypage" variant="secondary" size="sm" title="マイページ">
+                  <span className="flex items-center gap-1">
+                    <IconUser />
+                    <span className="hidden sm:inline">マイページ</span>
+                  </span>
+                </ButtonLink>
+              )}
               <ButtonLink href="/scores/new" size="sm" title="新規作成">
                 <span className="flex items-center gap-1">
                   <IconPlus />
                   <span className="hidden sm:inline">新規作成</span>
                 </span>
               </ButtonLink>
-              <Button variant="secondary" size="sm" onClick={signOut} title="ログアウト">
-                <span className="flex items-center gap-1">
-                  <IconLogout />
-                  <span className="hidden sm:inline">ログアウト</span>
-                </span>
-              </Button>
+              {user ? (
+                <Button variant="secondary" size="sm" onClick={signOut} title="ログアウト">
+                  <span className="flex items-center gap-1">
+                    <IconLogout />
+                    <span className="hidden sm:inline">ログアウト</span>
+                  </span>
+                </Button>
+              ) : (
+                <ButtonLink href="/login" variant="secondary" size="sm" title="ログイン">
+                  <span className="flex items-center gap-1">
+                    <IconLogin />
+                    <span className="hidden sm:inline">ログイン</span>
+                  </span>
+                </ButtonLink>
+              )}
             </>
-          ) : (
-            <ButtonLink href="/login" variant="secondary" size="sm" title="ログイン">
-              <span className="flex items-center gap-1">
-                <IconLogin />
-                <span className="hidden sm:inline">ログイン</span>
-              </span>
-            </ButtonLink>
           )}
         </nav>
       </div>
