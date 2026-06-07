@@ -86,6 +86,16 @@ export function LoginForm() {
                 ? "アカウント作成"
                 : "ログイン"}
           </Button>
+
+          {isSignUp && (
+            <p className="text-center text-xs text-muted">
+              アカウントを作成することで、
+              <a href="/privacy-policy" className="underline hover:opacity-70">
+                プライバシーポリシー
+              </a>
+              に同意したことになります。
+            </p>
+          )}
         </form>
 
         <div className="relative">
