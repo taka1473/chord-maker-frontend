@@ -4,6 +4,7 @@ import { useAuth } from "@/features/auth";
 import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ChordChart } from "@/features/scores/components/ChordChart";
+import { scoreEditHref } from "@/features/scores/lib/score-urls";
 import type { WholeScore } from "@/features/scores/types";
 
 type Props = {
@@ -16,9 +17,7 @@ export function ScoreDetailClient({ slug, initialData, guestToken = null }: Prop
   const { user } = useAuth();
   const { wholeScore, error, loading } = useWholeScore(slug, guestToken, initialData ?? undefined);
 
-  const editHref = guestToken
-    ? `/scores/${slug}/edit?token=${encodeURIComponent(guestToken)}`
-    : `/scores/${slug}/edit`;
+  const editHref = scoreEditHref(slug, guestToken);
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">

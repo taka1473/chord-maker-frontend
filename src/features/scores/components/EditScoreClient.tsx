@@ -3,6 +3,7 @@
 import { ButtonLink } from "@/features/shared";
 import { useWholeScore } from "@/features/scores/hooks/useWholeScore";
 import { ScoreEditor } from "@/features/scores/components/ScoreEditor";
+import { scoreDetailHref } from "@/features/scores/lib/score-urls";
 
 type Props = {
   slug: string;
@@ -15,7 +16,7 @@ function EditScoreContent({ slug, guestToken }: Props) {
   return (
     <div className="mx-auto max-w-4xl px-4 py-4">
       <ButtonLink
-        href={`/scores/${slug}`}
+        href={scoreDetailHref(slug, guestToken)}
         variant="ghost"
         className="mb-3 inline-block"
       >

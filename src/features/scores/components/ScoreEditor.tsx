@@ -20,6 +20,7 @@ import { KEY_NAMES, isFlatKey, formatChord } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
+import { scoreDetailHref, scoreEditHref } from "@/features/scores/lib/score-urls";
 import { Button } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
@@ -411,7 +412,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
   function handleCopyUrl() {
     if (!guestToken) return;
-    const url = `${window.location.origin}/scores/${scoreSlug}/edit?token=${encodeURIComponent(guestToken)}`;
+    const url = window.location.origin + scoreEditHref(scoreSlug, guestToken);
     navigator.clipboard.writeText(url).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -459,7 +460,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
               <div className="mt-2 flex items-center gap-2">
                 <code className="min-w-0 flex-1 truncate rounded bg-amber-100 px-2 py-1 text-xs dark:bg-amber-900/50">
                   {typeof window !== "undefined"
-                    ? `${window.location.origin}/scores/${scoreSlug}/edit?token=${encodeURIComponent(guestToken!)}`
+                    ? window.location.origin + scoreEditHref(scoreSlug, guestToken)
                     : ""}
                 </code>
                 <button
@@ -510,7 +511,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
               </a>
               <button
                 type="button"
-                onClick={() => { setShowLoginPromo(false); router.push(`/scores/${scoreSlug}`); }}
+                onClick={() => { setShowLoginPromo(false); router.push(scoreDetailHref(scoreSlug, guestToken)); }}
                 className="flex-1 rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
               >
                 閉じる
