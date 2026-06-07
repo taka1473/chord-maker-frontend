@@ -203,6 +203,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     const lastChord = lastChords?.[lastChords.length - 1];
     if (lastMeasure && lastChord) {
       setSelectionRaw({ type: "chord", measureTempId: lastMeasure.tempId, chordTempId: lastChord.tempId });
+    } else if (lastMeasure) {
+      setSelectionRaw({ type: "measure", measureTempId: lastMeasure.tempId });
     } else {
       setSelectionRaw(null);
     }
@@ -282,6 +284,9 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     markDirty();
     const measureTempId = nextTempId();
     const chordTempId = nextTempId();
+    if (pendingChord) {
+      dispatch({ type: "REMOVE_CHORD", measureTempId: pendingChord.measureTempId, chordTempId: pendingChord.chordTempId });
+    }
     dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
     setPendingChord({ measureTempId, chordTempId });
@@ -291,6 +296,9 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   function handleAddChord(measureTempId: string) {
     markDirty();
     const chordTempId = nextTempId();
+    if (pendingChord) {
+      dispatch({ type: "REMOVE_CHORD", measureTempId: pendingChord.measureTempId, chordTempId: pendingChord.chordTempId });
+    }
     dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
     setPendingChord({ measureTempId, chordTempId });
     setSelectionRaw({ type: "chord", measureTempId, chordTempId });

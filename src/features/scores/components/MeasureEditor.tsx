@@ -94,10 +94,14 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onAddChord}
-            disabled={isAddingChordDisabled}
-            className="rounded border border-dashed border-border px-3 py-1 text-xs text-muted transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+            className={[
+              "font-mono text-sm whitespace-nowrap rounded border px-1 transition-colors",
+              isMeasureSelected
+                ? "border-primary text-primary"
+                : "border-dashed border-accent/50 text-muted hover:border-accent hover:text-foreground",
+            ].join(" ")}
           >
-            + コード追加
+            --
           </button>
         )}
       </div>

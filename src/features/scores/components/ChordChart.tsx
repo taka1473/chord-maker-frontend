@@ -126,11 +126,15 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
                       </div>
                     )}
                     <div className="flex gap-2">
-                      {sortedChords.map((chord) => (
-                        <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
-                          {formatChord(chord, effectiveKey, effectiveFlats)}
-                        </span>
-                      ))}
+                      {sortedChords.length === 0 ? (
+                        <span className="font-mono text-sm text-muted whitespace-nowrap">―</span>
+                      ) : (
+                        sortedChords.map((chord) => (
+                          <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
+                            {formatChord(chord, effectiveKey, effectiveFlats)}
+                          </span>
+                        ))
+                      )}
                     </div>
                   </div>
                 );
