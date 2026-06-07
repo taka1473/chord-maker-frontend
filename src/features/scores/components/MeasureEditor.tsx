@@ -94,6 +94,7 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onAddChord}
+            disabled={isAddingChordDisabled}
             className={[
               "font-mono text-sm whitespace-nowrap rounded border px-1 transition-colors",
               isMeasureSelected

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Button, ButtonLink } from "@/features/shared";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { useCreateScore } from "@/features/scores/hooks/useCreateScore";
+import { scoreEditHref } from "@/features/scores/lib/score-urls";
 import type { ScoreFormData } from "@/features/scores/types";
 
 export function NewScoreClient() {
@@ -24,11 +25,7 @@ export function NewScoreClient() {
     e.preventDefault();
     const score = await createScore(formData);
     if (score) {
-      const path = `/scores/${score.slug}/edit`;
-      const url = score.guest_token
-        ? `${path}?token=${encodeURIComponent(score.guest_token)}`
-        : path;
-      router.push(url);
+      router.push(scoreEditHref(score.slug, score.guest_token));
     }
   }
 
