@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/features/auth/contexts/AuthContext";
 import { useSignIn } from "@/features/auth/hooks/useSignIn";
@@ -25,11 +26,11 @@ export function LoginForm() {
   const loading = signInLoading || signUpLoading;
   const error = signInError || signUpError;
 
-  // ログイン済みならリダイレクト
-  if (user) {
-    router.replace("/");
-    return null;
-  }
+  useEffect(() => {
+    if (user) router.replace("/");
+  }, [user, router]);
+
+  if (user) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,9 +91,9 @@ export function LoginForm() {
           {isSignUp && (
             <p className="text-center text-xs text-muted">
               アカウントを作成することで、
-              <a href="/privacy-policy" className="underline hover:opacity-70">
+              <Link href="/privacy-policy" className="underline hover:opacity-70">
                 プライバシーポリシー
-              </a>
+              </Link>
               に同意したことになります。
             </p>
           )}

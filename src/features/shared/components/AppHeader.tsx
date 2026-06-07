@@ -50,7 +50,12 @@ export function AppHeader() {
           <Image src="/logo.png" alt="Chordlet" width={108} height={40} priority />
         </Link>
         <nav className="flex items-center gap-1.5 sm:gap-3">
-          {!loading && (
+          {loading ? (
+            <>
+              <div className="h-8 w-8 animate-pulse rounded-md bg-muted sm:w-20" />
+              <div className="h-8 w-8 animate-pulse rounded-md bg-muted sm:w-16" />
+            </>
+          ) : (
             <>
               {user && (
                 <ButtonLink href="/mypage" variant="secondary" size="sm" title="マイページ">
