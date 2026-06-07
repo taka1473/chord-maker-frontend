@@ -14,14 +14,16 @@ type MeasureEditorProps = {
   onInsertChord: (afterChordTempId: string | null) => void;
   pendingChordTempId?: string | null;
   selectedGapAfterChordTempId?: string | null | undefined;
+  isAddingChordDisabled?: boolean;
 };
 
-function ChordGap({ onClick, isSelected }: { onClick: () => void; isSelected?: boolean }) {
+function ChordGap({ onClick, isSelected, disabled }: { onClick: () => void; isSelected?: boolean; disabled?: boolean }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="group flex w-2 shrink-0 cursor-pointer items-center justify-center self-stretch"
+      disabled={disabled}
+      className="group flex w-2 shrink-0 cursor-pointer items-center justify-center self-stretch disabled:pointer-events-none"
       title="コードを挿入"
     >
       <div className={[
@@ -50,6 +52,7 @@ export function MeasureEditor({
   onInsertChord,
   pendingChordTempId,
   selectedGapAfterChordTempId,
+  isAddingChordDisabled = false,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
 
@@ -72,7 +75,7 @@ export function MeasureEditor({
       <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
         {visibleChords.length > 0 ? (
           <>
-            <ChordGap onClick={() => onInsertChord(null)} isSelected={selectedGapAfterChordTempId === null} />
+            <ChordGap onClick={() => onInsertChord(null)} isSelected={selectedGapAfterChordTempId === null} disabled={isAddingChordDisabled} />
             {visibleChords.map((chord) => (
               <Fragment key={chord.tempId}>
                 <ChordDisplay
@@ -83,7 +86,7 @@ export function MeasureEditor({
                   isPending={chord.tempId === pendingChordTempId}
                   onSelect={() => onSelectChord(chord.tempId)}
                 />
-                <ChordGap onClick={() => onInsertChord(chord.tempId)} isSelected={selectedGapAfterChordTempId === chord.tempId} />
+                <ChordGap onClick={() => onInsertChord(chord.tempId)} isSelected={selectedGapAfterChordTempId === chord.tempId} disabled={isAddingChordDisabled} />
               </Fragment>
             ))}
           </>
@@ -91,7 +94,8 @@ export function MeasureEditor({
           <button
             type="button"
             onClick={onAddChord}
-            className="rounded border border-dashed border-border px-3 py-1 text-xs text-muted transition-colors hover:border-primary/30 hover:text-foreground"
+            disabled={isAddingChordDisabled}
+            className="rounded border border-dashed border-border px-3 py-1 text-xs text-muted transition-colors hover:border-primary/30 hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
           >
             + コード追加
           </button>

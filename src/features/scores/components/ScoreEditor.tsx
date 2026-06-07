@@ -620,6 +620,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                           onInsertChord={(afterChordTempId) =>
                             handleInsertChord(measure.tempId, afterChordTempId)
                           }
+                          isAddingChordDisabled={pendingChord !== null}
                         />
                       </div>
                       {/* Bar line after each measure */}
@@ -730,6 +731,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                   <button
                     type="button"
                     title="コードを追加"
+                    disabled={pendingChord !== null}
                     onClick={() => {
                       if (selection.type === "chord") {
                         handleInsertChord(selection.measureTempId, selection.chordTempId);
@@ -737,7 +739,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                         handleAddChord(selection.measureTempId);
                       }
                     }}
-                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     +♩
                   </button>
@@ -779,8 +781,9 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                   <div className="mt-3 flex items-center justify-center rounded-lg border border-dashed border-border py-4">
                     <button
                       type="button"
+                      disabled={pendingChord !== null}
                       onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
-                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       + コードを挿入
                     </button>
