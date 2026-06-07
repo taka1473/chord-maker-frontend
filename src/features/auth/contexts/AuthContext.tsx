@@ -17,7 +17,7 @@ type AuthContextValue = {
   loading: boolean;
 };
 
-const AuthContext = createContext<AuthContextValue>({
+export const AuthContext = createContext<AuthContextValue>({
   user: null,
   loading: true,
 });
