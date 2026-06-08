@@ -7,12 +7,14 @@ type Profile = {
   id: number;
   name: string;
   handle_name_set: boolean;
+  role: "user" | "admin";
 };
 
 type ApiProfile = {
   id: number;
   name: string;
   "handle_name_set?": boolean;
+  role: "user" | "admin";
 };
 
 export function useProfile() {
@@ -34,6 +36,7 @@ export function useProfile() {
             id: data.id,
             name: data.name,
             handle_name_set: data["handle_name_set?"],
+            role: data.role,
           });
         }
       } catch (e) {
@@ -66,6 +69,7 @@ export function useProfile() {
         id: data.id,
         name: data.name,
         handle_name_set: data["handle_name_set?"],
+        role: data.role,
       });
       return true;
     } catch (e) {
