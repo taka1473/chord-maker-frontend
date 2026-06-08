@@ -66,14 +66,18 @@ type UserRowProps = {
 function UserRow({ user, onDelete }: UserRowProps) {
   const [confirming, setConfirming] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const handleDelete = async () => {
     setDeleting(true);
+    setMutationError(null);
     try {
       await onDelete();
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : "削除に失敗しました");
+      setConfirming(false);
     } finally {
       setDeleting(false);
-      setConfirming(false);
     }
   };
 
@@ -95,6 +99,9 @@ function UserRow({ user, onDelete }: UserRowProps) {
         {new Date(user.created_at).toLocaleDateString("ja-JP")}
       </td>
       <td className="py-2">
+        {mutationError && (
+          <p className="mb-1 text-xs text-destructive">{mutationError}</p>
+        )}
         {confirming ? (
           <div className="flex items-center gap-2">
             <p className="text-xs text-destructive">

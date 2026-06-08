@@ -24,15 +24,25 @@ export function AdminGuard({ children }: Props) {
 }
 
 function AdminRoleCheck({ children }: Props) {
-  const { profile, loading } = useProfile();
+  const { profile, error, loading } = useProfile();
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && profile?.role !== "admin") {
+    if (!loading && !error && profile?.role !== "admin") {
       router.replace("/");
     }
-  }, [profile, loading, router]);
+  }, [profile, error, loading, router]);
 
-  if (loading || profile?.role !== "admin") return null;
+  if (loading) return null;
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center">
+        <p className="text-destructive">
+          権限の確認に失敗しました。再読み込みしてください。
+        </p>
+      </div>
+    );
+  }
+  if (profile?.role !== "admin") return null;
   return <>{children}</>;
 }

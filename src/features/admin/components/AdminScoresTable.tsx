@@ -67,11 +67,15 @@ type ScoreRowProps = {
 function ScoreRow({ score, onUnpublish, onDelete }: ScoreRowProps) {
   const [confirming, setConfirming] = useState(false);
   const [processing, setProcessing] = useState(false);
+  const [mutationError, setMutationError] = useState<string | null>(null);
 
   const handleUnpublish = async () => {
     setProcessing(true);
+    setMutationError(null);
     try {
       await onUnpublish();
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : "非公開化に失敗しました");
     } finally {
       setProcessing(false);
     }
@@ -79,11 +83,14 @@ function ScoreRow({ score, onUnpublish, onDelete }: ScoreRowProps) {
 
   const handleDelete = async () => {
     setProcessing(true);
+    setMutationError(null);
     try {
       await onDelete();
+    } catch (e) {
+      setMutationError(e instanceof Error ? e.message : "削除に失敗しました");
+      setConfirming(false);
     } finally {
       setProcessing(false);
-      setConfirming(false);
     }
   };
 
@@ -107,6 +114,9 @@ function ScoreRow({ score, onUnpublish, onDelete }: ScoreRowProps) {
         {new Date(score.created_at).toLocaleDateString("ja-JP")}
       </td>
       <td className="py-2">
+        {mutationError && (
+          <p className="mb-1 text-xs text-destructive">{mutationError}</p>
+        )}
         {confirming ? (
           <div className="flex items-center gap-2">
             <p className="text-xs text-destructive">削除しますか？</p>
