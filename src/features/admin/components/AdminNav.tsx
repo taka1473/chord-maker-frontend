@@ -7,6 +7,7 @@ const navItems = [
   { href: "/admin/users", label: "ユーザー" },
   { href: "/admin/scores", label: "スコア" },
   { href: "/admin/tags", label: "タグ" },
+  { href: "/admin/import", label: "インポート" },
 ];
 
 export function AdminNav() {
