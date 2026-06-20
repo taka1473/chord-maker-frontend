@@ -6,3 +6,4 @@ export { Select } from "./Select";
 export { Card } from "./Card";
 export { Label } from "./Label";
 export { Pagination } from "./Pagination";
+export { Dialog } from "./Dialog";

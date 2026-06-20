@@ -5,9 +5,10 @@ import { Input, Select, Label } from "@/features/shared";
 type ScoreMetaFormProps = {
   formData: ScoreFormData;
   onChange: (formData: ScoreFormData) => void;
+  onKeyNameChange?: (newKeyName: string) => void;
 };
 
-export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
+export function ScoreMetaForm({ formData, onChange, onKeyNameChange }: ScoreMetaFormProps) {
   function handleChange(
     field: keyof ScoreFormData,
     value: string
@@ -48,7 +49,13 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
         <div className="flex gap-2">
           <Select
             value={formData.key_name}
-            onChange={(e) => handleChange("key_name", e.target.value)}
+            onChange={(e) => {
+              if (onKeyNameChange) {
+                onKeyNameChange(e.target.value);
+              } else {
+                handleChange("key_name", e.target.value);
+              }
+            }}
           >
             {KEY_NAMES.map((key) => (
               <option key={key} value={key}>

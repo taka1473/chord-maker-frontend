@@ -1,4 +1,5 @@
 import type { EditableMeasure, EditableChord } from "@/features/scores/types";
+import { keyNameToNumber, getKeyNameFromNumber, isFlatKey } from "@/features/scores/types";
 
 let tempIdCounter = 0;
 export function nextTempId(): string {
@@ -25,7 +26,8 @@ export type MeasureAction =
       field: string;
       value: number | string;
     }
-  | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null };
+  | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null }
+  | { type: "APPLY_KEY_CHANGE"; oldKey: number; newKey: number; mode: "relative" | "absolute" };
 
 export function measuresReducer(
   state: EditableMeasure[],
@@ -167,6 +169,36 @@ export function measuresReducer(
           ? { ...m, key_name: action.keyName }
           : m
       );
+
+    case "APPLY_KEY_CHANGE": {
+      const { oldKey, newKey, mode } = action;
+      const delta = ((newKey - oldKey) % 12 + 12) % 12;
+      if (delta === 0) return state;
+
+      if (mode === "relative") {
+        // 移調：offset はそのまま、小節キーオーバーライドをdelta分シフト
+        return state.map((m) => {
+          if (!m.key_name) return m;
+          const currentMeasureKey = keyNameToNumber(m.key_name);
+          const newMeasureKey = (currentMeasureKey + delta) % 12;
+          const newKeyName = getKeyNameFromNumber(newMeasureKey, isFlatKey(m.key_name));
+          return { ...m, key_name: newKeyName };
+        });
+      } else {
+        // 絶対（音固定）：キーオーバーライドのない小節のoffsetを-delta調整
+        return state.map((m) => {
+          if (m.key_name) return m; // 小節キーあり → offset は小節キー基準なので変更不要
+          return {
+            ...m,
+            chords: m.chords.map((c): EditableChord => ({
+              ...c,
+              root_offset: ((c.root_offset - delta) % 12 + 12) % 12,
+              bass_offset: ((c.bass_offset - delta) % 12 + 12) % 12,
+            })),
+          };
+        });
+      }
+    }
 
     default:
       return state;

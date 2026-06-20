@@ -16,12 +16,12 @@ import type {
   EditableChord,
   ChordType,
 } from "@/features/scores/types";
-import { KEY_NAMES, isFlatKey, formatChord } from "@/features/scores/types";
+import { KEY_NAMES, isFlatKey, formatChord, keyNameToNumber } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
 import { scoreDetailHref, scoreEditHref } from "@/features/scores/lib/score-urls";
-import { Button } from "@/features/shared";
+import { Button, Dialog } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
 
@@ -132,6 +132,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
   const [pendingChord, setPendingChord] = useState<{ measureTempId: string; chordTempId: string } | null>(null);
   const [metaOpen, setMetaOpen] = useState(false);
+  const [pendingKeyChange, setPendingKeyChange] = useState<{ oldKeyName: string; newKeyName: string } | null>(null);
   const isDirtyRef = useRef(false);
 
   // ページ離脱時の警告
@@ -238,6 +239,32 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
   const useFlats = isFlatKey(formData.key_name);
+
+  // キーセレクタ変更時: 同じキーなら即適用、変わるならダイアログを表示
+  function handleKeyNameChange(newKeyName: string) {
+    if (newKeyName === formData.key_name) return;
+    setPendingKeyChange({ oldKeyName: formData.key_name, newKeyName });
+  }
+
+  function applyKeyChange(mode: "relative" | "absolute") {
+    if (!pendingKeyChange) return;
+    const { oldKeyName, newKeyName } = pendingKeyChange;
+    const oldKey = keyNameToNumber(oldKeyName);
+    const newKey = keyNameToNumber(newKeyName);
+    markDirty();
+    dispatch({ type: "APPLY_KEY_CHANGE", oldKey, newKey, mode });
+    setFormData((prev) => ({ ...prev, key_name: newKeyName }));
+    setPendingKeyChange(null);
+  }
+
+  // ダイアログ例示用: 最初の可視コードを取得
+  const firstVisibleChord = useMemo(() => {
+    for (const m of visibleMeasures) {
+      const chord = m.chords.find((c) => !c._destroy);
+      if (chord) return { chord, measureKeyName: m.key_name ?? null };
+    }
+    return null;
+  }, [visibleMeasures]);
 
   // 小節ごとの有効キーを算出（転調対応）
   const effectiveKeys = useMemo(() => {
@@ -453,7 +480,59 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     rows.push(visibleMeasures.slice(i, i + cols));
   }
 
+  // キー変更ダイアログの例示コード名を計算
+  const keyChangeExample = (() => {
+    if (!pendingKeyChange || !firstVisibleChord) return null;
+    const { oldKeyName, newKeyName } = pendingKeyChange;
+    const effectiveMeasureKey = firstVisibleChord.measureKeyName
+      ? KEY_MAP[firstVisibleChord.measureKeyName] ?? scoreKey
+      : scoreKey;
+    const oldName = formatChord(firstVisibleChord.chord, effectiveMeasureKey, isFlatKey(oldKeyName));
+    const newKey = KEY_MAP[newKeyName] ?? 3;
+    const newName = formatChord(firstVisibleChord.chord, newKey, isFlatKey(newKeyName));
+    return { oldName, newName };
+  })();
+
   return (
+    <>
+    <Dialog
+      open={pendingKeyChange !== null}
+      title={`キーを ${pendingKeyChange?.oldKeyName ?? ""} から ${pendingKeyChange?.newKeyName ?? ""} に変更します`}
+      onClose={() => setPendingKeyChange(null)}
+      actions={
+        <div className="flex w-full flex-col gap-3">
+          <div className="flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => applyKeyChange("absolute")}>
+              キーのみ変える
+            </Button>
+            <Button onClick={() => applyKeyChange("relative")}>
+              そのまま移調
+            </Button>
+          </div>
+          <div className="flex justify-center">
+            <Button variant="ghost" onClick={() => setPendingKeyChange(null)}>
+              キャンセル
+            </Button>
+          </div>
+        </div>
+      }
+    >
+      {keyChangeExample ? (
+        <ul className="space-y-2">
+          <li>
+            <span className="font-medium">そのまま移調</span>：{keyChangeExample.oldName} → {keyChangeExample.newName} のように移調されます
+          </li>
+          <li>
+            <span className="font-medium">キーのみ変える</span>：{keyChangeExample.oldName} → {keyChangeExample.oldName} のまま変わりません
+          </li>
+        </ul>
+      ) : (
+        <ul className="space-y-2">
+          <li><span className="font-medium">そのまま移調</span>：すべてのコードが移調されます</li>
+          <li><span className="font-medium">キーのみ変える</span>：コードの実音は変わらず、offsetが再計算されます</li>
+        </ul>
+      )}
+    </Dialog>
     <div>
       {/* ゲストスコアバナー */}
       {guestToken && (
@@ -559,7 +638,11 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
         </button>
         {metaOpen && (
           <div className="border-t border-border px-4 py-4">
-            <ScoreMetaForm formData={formData} onChange={(v) => { markDirty(); setFormData(v); }} />
+            <ScoreMetaForm
+              formData={formData}
+              onChange={(v) => { markDirty(); setFormData(v); }}
+              onKeyNameChange={handleKeyNameChange}
+            />
           </div>
         )}
       </div>
@@ -870,5 +953,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
         </div>
       )}
     </div>
+    </>
   );
 }
