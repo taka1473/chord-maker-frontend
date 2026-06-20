@@ -15,6 +15,10 @@ type MeasureEditorProps = {
   pendingChordTempId?: string | null;
   selectedGapAfterChordTempId?: string | null | undefined;
   isAddingChordDisabled?: boolean;
+  isMeasureSelectMode?: boolean;
+  isMeasureSelectSelected?: boolean;
+  onMeasureTap?: () => void;
+  isPreview?: boolean;
 };
 
 function ChordGap({ onClick, isSelected, disabled }: { onClick: () => void; isSelected?: boolean; disabled?: boolean }) {
@@ -53,8 +57,55 @@ export function MeasureEditor({
   pendingChordTempId,
   selectedGapAfterChordTempId,
   isAddingChordDisabled = false,
+  isMeasureSelectMode = false,
+  isMeasureSelectSelected = false,
+  onMeasureTap,
+  isPreview = false,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
+
+  if (isMeasureSelectMode || isPreview) {
+    return (
+      <div
+        className={[
+          "px-3 py-1 transition-colors",
+          isPreview
+            ? "pointer-events-none opacity-50"
+            : isMeasureSelectSelected
+              ? "cursor-pointer bg-primary/15 ring-2 ring-inset ring-primary"
+              : "cursor-pointer hover:bg-primary/5",
+        ].join(" ")}
+        onClick={isPreview ? undefined : onMeasureTap}
+      >
+        {measure.key_name && (
+          <div className="mb-1">
+            <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+              Key: {measure.key_name}
+            </span>
+          </div>
+        )}
+        <div className="flex items-center">
+          {visibleChords.length > 0 ? (
+            <>
+              {visibleChords.map((chord) => (
+                <ChordDisplay
+                  key={chord.tempId}
+                  chord={chord}
+                  scoreKey={scoreKey}
+                  useFlats={useFlats}
+                  isSelected={false}
+                  isPending={false}
+                  onSelect={() => {}}
+                />
+              ))}
+            </>
+          ) : (
+            <span className="font-mono text-sm text-muted">--</span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

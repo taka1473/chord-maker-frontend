@@ -25,34 +25,58 @@ import { Button, Dialog } from "@/features/shared";
 
 // --- Bar Line (clickable divider) ---
 
-function BarLine({ onClick, onPaste, hasClipboard, isSelected, hideBar }: { onClick: () => void; onPaste?: () => void; hasClipboard?: boolean; isSelected?: boolean; hideBar?: boolean }) {
-  const showButtons = isSelected;
+function BarLine({
+  onClick,
+  isSelected,
+  hideBar,
+  isPastePhase,
+  isPasteTarget,
+  onSelectPasteTarget,
+}: {
+  onClick: () => void;
+  isSelected?: boolean;
+  hideBar?: boolean;
+  isPastePhase?: boolean;
+  isPasteTarget?: boolean;
+  onSelectPasteTarget?: () => void;
+}) {
+  const showButtons = isSelected || isPasteTarget;
   return (
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className={[
         "h-full w-px transition-all",
-        hideBar && !isSelected ? "bg-transparent group-hover:bg-primary" : isSelected ? "w-0.5 bg-primary" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
+        hideBar && !isSelected && !isPasteTarget
+          ? "bg-transparent group-hover:bg-primary"
+          : isSelected || isPasteTarget
+            ? "w-0.5 bg-primary"
+            : "bg-border group-hover:w-0.5 group-hover:bg-primary",
       ].join(" ")} />
       <div className={[
         "absolute flex-col gap-1",
         showButtons ? "flex" : "hidden group-hover:flex",
       ].join(" ")}>
-        <button
-          type="button"
-          onClick={onClick}
-          className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow hover:opacity-90"
-          title="小節を挿入"
-        >
-          +
-        </button>
-        {hasClipboard && onPaste && (
+        {isPastePhase ? (
           <button
             type="button"
-            onClick={onPaste}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-secondary text-[10px] text-secondary-foreground shadow hover:opacity-90"
-            title="コピーした小節をペースト"
+            onClick={onSelectPasteTarget}
+            className={[
+              "flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[10px] shadow hover:opacity-90",
+              isPasteTarget
+                ? "bg-primary text-primary-foreground"
+                : "bg-secondary text-secondary-foreground",
+            ].join(" ")}
+            title="ここにペースト"
           >
-            ⎘
+            ↓
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onClick}
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow hover:opacity-90"
+            title="小節を挿入"
+          >
+            +
           </button>
         )}
       </div>
@@ -66,6 +90,8 @@ type ClipboardMeasure = {
   key_name?: string | null;
   chords: { root_offset: number; bass_offset: number; chord_type: ChordType }[];
 };
+
+type DisplayMeasure = EditableMeasure & { _preview?: boolean };
 
 // --- Constants ---
 
@@ -129,29 +155,33 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const [published, setPublished] = useState(initialData.published);
   const [measures, dispatch] = useReducer(measuresReducer, []);
   const [selection, setSelectionRaw] = useState<Selection>(null);
-  const [clipboard, setClipboard] = useState<ClipboardMeasure | null>(null);
+  const [clipboard, setClipboard] = useState<ClipboardMeasure[] | null>(null);
   const [pendingChord, setPendingChord] = useState<{ measureTempId: string; chordTempId: string } | null>(null);
   const [metaOpen, setMetaOpen] = useState(false);
   const [pendingKeyChange, setPendingKeyChange] = useState<{ oldKeyName: string; newKeyName: string } | null>(null);
   const isDirtyRef = useRef(false);
 
+  // 小節選択モード
+  const [measureSelectMode, setMeasureSelectMode] = useState(false);
+  const [selectedMeasureTempIds, setSelectedMeasureTempIds] = useState<string[]>([]);
+  const [pastePhase, setPastePhase] = useState(false);
+  // undefined=未選択, null=先頭前, string=その小節の後ろ
+  const [pastePreviewAfterTempId, setPastePreviewAfterTempId] = useState<string | null | undefined>(undefined);
+
   // ページ離脱時の警告
   useEffect(() => {
     const msg = "変更が保存されていません。ページを離れますか？";
 
-    // タブ閉じ・リロード
     function handleBeforeUnload(e: BeforeUnloadEvent) {
       if (isDirtyRef.current) {
         e.preventDefault();
       }
     }
 
-    // リンククリック（ヘッダー、パンくずなど）をキャプチャフェーズで攔截
     function handleClick(e: MouseEvent) {
       if (!isDirtyRef.current) return;
       const anchor = (e.target as HTMLElement).closest("a");
       if (!anchor || !anchor.href) return;
-      // 外部リンクは beforeunload に任せる
       if (anchor.origin !== window.location.origin) return;
       if (!window.confirm(msg)) {
         e.preventDefault();
@@ -159,7 +189,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       }
     }
 
-    // ブラウザバック・フォワード
     window.history.pushState(null, "", window.location.href);
     function handlePopState() {
       if (isDirtyRef.current) {
@@ -198,7 +227,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     const editable = wholeScoreToEditable(initialData);
     dispatch({ type: "INIT", measures: editable });
     setPendingChord(null);
-    // 最後の小節の最後のコードを選択
     const visible = editable.filter((m) => !m._destroy);
     const lastMeasure = visible[visible.length - 1];
     const lastChords = lastMeasure?.chords.filter((c) => !c._destroy);
@@ -212,7 +240,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     }
   }
 
-  // 初期データ変更時: dirty フラグリセット + ページ下部スクロール
   useEffect(() => {
     isDirtyRef.current = false;
     requestAnimationFrame(() => window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" }));
@@ -231,7 +258,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     );
   }, [measures, selection]);
 
-  // 選択中の小節データ
   const selectedMeasureData = useMemo<EditableMeasure | null>(() => {
     if (!selection || selection.type !== "measure") return null;
     return measures.find((m) => m.tempId === selection.measureTempId) ?? null;
@@ -240,7 +266,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const scoreKey = KEY_MAP[formData.key_name] ?? 3;
   const useFlats = isFlatKey(formData.key_name);
 
-  // キーセレクタ変更時: 同じキーなら即適用、変わるならダイアログを表示
   function handleKeyNameChange(newKeyName: string) {
     if (newKeyName === formData.key_name) return;
     setPendingKeyChange({ oldKeyName: formData.key_name, newKeyName });
@@ -257,7 +282,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     setPendingKeyChange(null);
   }
 
-  // ダイアログ例示用: 最初の可視コードを取得
   const firstVisibleChord = useMemo(() => {
     for (const m of visibleMeasures) {
       const chord = m.chords.find((c) => !c._destroy);
@@ -266,7 +290,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     return null;
   }, [visibleMeasures]);
 
-  // 小節ごとの有効キーを算出（転調対応）
   const effectiveKeys = useMemo(() => {
     const map = new Map<string, { scoreKey: number; useFlats: boolean }>();
     let currentKey = scoreKey;
@@ -281,7 +304,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     return map;
   }, [visibleMeasures, scoreKey, useFlats]);
 
-  // ナビゲーションリスト
   const navItems = useMemo(() => buildNavItems(visibleMeasures), [visibleMeasures]);
 
   function handleNavigate(direction: "left" | "right") {
@@ -293,7 +315,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     const currentIdx = navItems.findIndex((item) => selectionEquals(item, selection));
     if (currentIdx === -1) return;
     let nextIdx = direction === "left" ? currentIdx - 1 : currentIdx + 1;
-    // 未確定コードから右ナビゲーション時、削除されるchord_gapをスキップ
     if (pendingChord && direction === "right") {
       const nextItem = navItems[nextIdx];
       if (nextItem?.type === "chord_gap" && nextItem.afterChordTempId === pendingChord.chordTempId) {
@@ -379,7 +400,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   function handleUpdateField(field: string, value: number | string) {
     if (!selection || selection.type !== "chord") return;
     markDirty();
-    // 鍵盤UIでの編集で未確定コードを確定
     if (pendingChord) setPendingChord(null);
     dispatch({
       type: "UPDATE_CHORD",
@@ -390,41 +410,104 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     });
   }
 
-  function handleCopyMeasure(measureTempId: string) {
-    const measure = measures.find((m) => m.tempId === measureTempId);
-    if (!measure) return;
-    const visChords = measure.chords.filter((c) => !c._destroy);
-    setClipboard({
-      key_name: measure.key_name,
-      chords: visChords.map((c) => ({
-        root_offset: c.root_offset,
-        bass_offset: c.bass_offset,
-        chord_type: c.chord_type,
-      })),
+  // --- 小節選択モード ---
+
+  function handleToggleMeasureSelectMode() {
+    if (measureSelectMode) {
+      setMeasureSelectMode(false);
+      setSelectedMeasureTempIds([]);
+      setPastePhase(false);
+      setPastePreviewAfterTempId(undefined);
+    } else {
+      setMeasureSelectMode(true);
+      setSelectedMeasureTempIds([]);
+      setPastePhase(false);
+      setPastePreviewAfterTempId(undefined);
+      setSelection(null);
+    }
+  }
+
+  function handleMeasureTap(tempId: string) {
+    const visibleIds = visibleMeasures.map((m) => m.tempId);
+    const tapIdx = visibleIds.indexOf(tempId);
+    if (tapIdx === -1) return;
+
+    setSelectedMeasureTempIds((prev) => {
+      if (prev.length === 0) return [tempId];
+
+      const firstIdx = visibleIds.indexOf(prev[0]!);
+      const lastIdx = visibleIds.indexOf(prev[prev.length - 1]!);
+
+      // 端を縮小
+      if (tapIdx === firstIdx && firstIdx === lastIdx) return [];
+      if (tapIdx === firstIdx) return prev.slice(1);
+      if (tapIdx === lastIdx) return prev.slice(0, -1);
+
+      // 範囲拡張
+      if (tapIdx === firstIdx - 1) return [tempId, ...prev];
+      if (tapIdx === lastIdx + 1) return [...prev, tempId];
+
+      // 非隣接: リセット
+      return [tempId];
     });
   }
 
-  function handlePasteMeasure(afterTempId: string | null) {
-    if (!clipboard) return;
-    markDirty();
-    const measureTempId = nextTempId();
-    dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId, newTempId: measureTempId });
-    if (clipboard.key_name) {
-      dispatch({ type: "SET_MEASURE_KEY", measureTempId, keyName: clipboard.key_name });
-    }
-    let firstChordTempId: string | null = null;
-    for (const chord of clipboard.chords) {
-      const chordTempId = nextTempId();
-      if (!firstChordTempId) firstChordTempId = chordTempId;
-      dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
-      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "root_offset", value: chord.root_offset });
-      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "bass_offset", value: chord.bass_offset });
-      dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "chord_type", value: chord.chord_type });
-    }
-    if (firstChordTempId) {
-      setSelection({ type: "chord", measureTempId, chordTempId: firstChordTempId });
-    }
+  function handleCopySelectedMeasures() {
+    const clips: ClipboardMeasure[] = selectedMeasureTempIds.map((tempId) => {
+      const measure = measures.find((m) => m.tempId === tempId);
+      if (!measure) return { chords: [] };
+      const visChords = measure.chords.filter((c) => !c._destroy);
+      return {
+        key_name: measure.key_name,
+        chords: visChords.map((c) => ({
+          root_offset: c.root_offset,
+          bass_offset: c.bass_offset,
+          chord_type: c.chord_type,
+        })),
+      };
+    });
+    setClipboard(clips);
+    setPastePhase(true);
+    setPastePreviewAfterTempId(undefined);
   }
+
+  function handleSelectPasteTarget(afterTempId: string | null) {
+    setPastePreviewAfterTempId(afterTempId);
+  }
+
+  function handleConfirmPaste() {
+    if (!clipboard || pastePreviewAfterTempId === undefined) return;
+    markDirty();
+
+    let prevTempId: string | null = pastePreviewAfterTempId;
+    for (const clip of clipboard) {
+      const measureTempId = nextTempId();
+      dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId: prevTempId, newTempId: measureTempId });
+      if (clip.key_name) {
+        dispatch({ type: "SET_MEASURE_KEY", measureTempId, keyName: clip.key_name });
+      }
+      for (const chord of clip.chords) {
+        const chordTempId = nextTempId();
+        dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
+        dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "root_offset", value: chord.root_offset });
+        dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "bass_offset", value: chord.bass_offset });
+        dispatch({ type: "UPDATE_CHORD", measureTempId, chordTempId, field: "chord_type", value: chord.chord_type });
+      }
+      prevTempId = measureTempId;
+    }
+
+    // ペースト後: ペーストフェーズを終了し、小節選択モードに戻る
+    setPastePhase(false);
+    setPastePreviewAfterTempId(undefined);
+    setSelectedMeasureTempIds([]);
+  }
+
+  function handleCancelPastePhase() {
+    setPastePhase(false);
+    setPastePreviewAfterTempId(undefined);
+  }
+
+  // ---
 
   async function handleSave() {
     const result = await updateScore(scoreSlug, formData, measures, published, guestToken);
@@ -455,32 +538,65 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     });
   }
 
-  // BarLine の選択判定ヘルパー
   function isBarLineSelected(afterMeasureTempId: string | null): boolean {
     return selection?.type === "bar_line" && selection.afterMeasureTempId === afterMeasureTempId;
   }
 
-  // ChordGap の選択判定ヘルパー
   function getSelectedGap(measureTempId: string): string | null | undefined {
     if (selection?.type === "chord_gap" && selection.measureTempId === measureTempId) {
       return selection.afterChordTempId;
     }
-    return undefined; // このmeasureにギャップ選択なし
+    return undefined;
   }
 
-  // 選択中コードが属する小節のキー
+  function isPasteTargetBarLine(afterMeasureTempId: string | null): boolean {
+    return pastePhase && pastePreviewAfterTempId !== undefined && pastePreviewAfterTempId === afterMeasureTempId;
+  }
+
   const selectedMeasureKey = useMemo(() => {
     if (!selection || !("measureTempId" in selection)) return { scoreKey, useFlats };
     return effectiveKeys.get(selection.measureTempId) ?? { scoreKey, useFlats };
   }, [selection, effectiveKeys, scoreKey, useFlats]);
 
-  // Split visible measures into rows for bar-line layout
-  const rows: EditableMeasure[][] = [];
-  for (let i = 0; i < visibleMeasures.length; i += cols) {
-    rows.push(visibleMeasures.slice(i, i + cols));
+  // プレビュー小節を visibleMeasures に注入した displayMeasures を計算
+  const displayMeasures = useMemo<DisplayMeasure[]>(() => {
+    if (!pastePhase || pastePreviewAfterTempId === undefined || !clipboard) {
+      return visibleMeasures;
+    }
+
+    let insertIdx: number;
+    if (pastePreviewAfterTempId === null) {
+      insertIdx = 0;
+    } else {
+      const targetIdx = visibleMeasures.findIndex((m) => m.tempId === pastePreviewAfterTempId);
+      insertIdx = targetIdx >= 0 ? targetIdx + 1 : visibleMeasures.length;
+    }
+
+    const previewMeasures: DisplayMeasure[] = clipboard.map((clip, i) => ({
+      tempId: `__preview_${i}`,
+      position: 0,
+      key_name: clip.key_name,
+      chords: clip.chords.map((c, j) => ({
+        tempId: `__preview_chord_${i}_${j}`,
+        position: j + 1,
+        root_offset: c.root_offset,
+        bass_offset: c.bass_offset,
+        chord_type: c.chord_type,
+      })),
+      _preview: true,
+    }));
+
+    const result = [...visibleMeasures] as DisplayMeasure[];
+    result.splice(insertIdx, 0, ...previewMeasures);
+    return result;
+  }, [visibleMeasures, pastePhase, pastePreviewAfterTempId, clipboard]);
+
+  // displayMeasures を rows に分割
+  const rows: DisplayMeasure[][] = [];
+  for (let i = 0; i < displayMeasures.length; i += cols) {
+    rows.push(displayMeasures.slice(i, i + cols));
   }
 
-  // キー変更ダイアログの例示コード名を計算
   const keyChangeExample = (() => {
     if (!pendingKeyChange || !firstVisibleChord) return null;
     const { oldKeyName, newKeyName } = pendingKeyChange;
@@ -655,79 +771,98 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       </div>
 
       <div className="mt-4">
-        <h2 className="mb-3 text-xl font-semibold">コード譜</h2>
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-xl font-semibold">コード譜</h2>
+          {visibleMeasures.length > 0 && (
+            <button
+              type="button"
+              onClick={handleToggleMeasureSelectMode}
+              className={[
+                "rounded px-3 py-1 text-sm transition-colors",
+                measureSelectMode
+                  ? "bg-primary/10 font-medium text-primary hover:bg-primary/20"
+                  : "text-muted hover:bg-primary/5 hover:text-foreground",
+              ].join(" ")}
+            >
+              {measureSelectMode ? "キャンセル" : "小節を選択"}
+            </button>
+          )}
+        </div>
 
         {rows.length > 0 ? (
           <div className="space-y-2">
-            {rows.map((row, rowIdx) => (
-              <div key={rowIdx} className="flex items-stretch flex-wrap">
-                {/* Leading bar line for first row */}
-                {rowIdx === 0 && (
-                  <BarLine
-                    onClick={() => handleInsertMeasure(null)}
-                    onPaste={() => handlePasteMeasure(null)}
-                    hasClipboard={!!clipboard}
-                    isSelected={isBarLineSelected(null)}
-                    hideBar
-                  />
-                )}
-                {/* Non-first rows: leading bar line inserts after prev row's last measure */}
-                {rowIdx > 0 && (() => {
-                  const prevRow = rows[rowIdx - 1]!;
-                  const lastMeasure = prevRow[prevRow.length - 1]!;
-                  return (
-                    <BarLine
-                      onClick={() => handleInsertMeasure(lastMeasure.tempId)}
-                      onPaste={() => handlePasteMeasure(lastMeasure.tempId)}
-                      hasClipboard={!!clipboard}
-                      isSelected={isBarLineSelected(lastMeasure.tempId)}
-                      hideBar
-                    />
-                  );
-                })()}
+            {rows.map((row, rowIdx) => {
+              // 行頭バーラインの afterTempId を計算
+              const leadingAfterTempId: string | null = rowIdx === 0
+                ? null
+                : (rows[rowIdx - 1]!.filter(m => !m._preview).at(-1)?.tempId ?? null);
 
-                {row.map((measure) => {
-                  const ek = effectiveKeys.get(measure.tempId);
-                  return (
-                    <Fragment key={measure.tempId}>
-                      <div>
-                        <MeasureEditor
-                          measure={measure}
-                          scoreKey={ek?.scoreKey ?? scoreKey}
-                          useFlats={ek?.useFlats ?? useFlats}
-                          selectedChordTempId={
-                            selection?.type === "chord" && selection.measureTempId === measure.tempId
-                              ? selection.chordTempId
-                              : null
-                          }
-                          isMeasureSelected={
-                            selection?.type === "measure" && selection.measureTempId === measure.tempId
-                          }
-                          onSelectMeasure={() => handleSelectMeasure(measure.tempId)}
-                          pendingChordTempId={pendingChord?.measureTempId === measure.tempId ? pendingChord.chordTempId : null}
-                          selectedGapAfterChordTempId={getSelectedGap(measure.tempId)}
-                          onSelectChord={(chordTempId) =>
-                            handleSelectChord(measure.tempId, chordTempId)
-                          }
-                          onAddChord={() => handleAddChord(measure.tempId)}
-                          onInsertChord={(afterChordTempId) =>
-                            handleInsertChord(measure.tempId, afterChordTempId)
-                          }
-                          isAddingChordDisabled={pendingChord !== null}
-                        />
-                      </div>
-                      {/* Bar line after each measure */}
-                      <BarLine
-                        onClick={() => handleInsertMeasure(measure.tempId)}
-                        onPaste={() => handlePasteMeasure(measure.tempId)}
-                        hasClipboard={!!clipboard}
-                        isSelected={isBarLineSelected(measure.tempId)}
-                      />
-                    </Fragment>
-                  );
-                })}
-              </div>
-            ))}
+              return (
+                <div key={rowIdx} className="flex items-stretch flex-wrap">
+                  <BarLine
+                    onClick={() => handleInsertMeasure(leadingAfterTempId)}
+                    isSelected={!measureSelectMode && isBarLineSelected(leadingAfterTempId)}
+                    hideBar
+                    isPastePhase={pastePhase}
+                    isPasteTarget={isPasteTargetBarLine(leadingAfterTempId)}
+                    onSelectPasteTarget={() => handleSelectPasteTarget(leadingAfterTempId)}
+                  />
+
+                  {row.map((measure) => {
+                    const isPreview = !!(measure as DisplayMeasure)._preview;
+                    const ek = isPreview ? undefined : effectiveKeys.get(measure.tempId);
+                    const measureScoreKey = ek?.scoreKey ?? scoreKey;
+                    const measureUseFlats = ek?.useFlats ?? useFlats;
+                    // プレビュー小節の afterTempId は undefined（バーライン不要）
+                    const trailingAfterTempId = isPreview ? null : measure.tempId;
+
+                    return (
+                      <Fragment key={measure.tempId}>
+                        <div>
+                          <MeasureEditor
+                            measure={measure}
+                            scoreKey={measureScoreKey}
+                            useFlats={measureUseFlats}
+                            selectedChordTempId={
+                              !measureSelectMode && selection?.type === "chord" && selection.measureTempId === measure.tempId
+                                ? selection.chordTempId
+                                : null
+                            }
+                            isMeasureSelected={
+                              !measureSelectMode && selection?.type === "measure" && selection.measureTempId === measure.tempId
+                            }
+                            onSelectMeasure={() => handleSelectMeasure(measure.tempId)}
+                            pendingChordTempId={pendingChord?.measureTempId === measure.tempId ? pendingChord.chordTempId : null}
+                            selectedGapAfterChordTempId={!measureSelectMode ? getSelectedGap(measure.tempId) : undefined}
+                            onSelectChord={(chordTempId) =>
+                              handleSelectChord(measure.tempId, chordTempId)
+                            }
+                            onAddChord={() => handleAddChord(measure.tempId)}
+                            onInsertChord={(afterChordTempId) =>
+                              handleInsertChord(measure.tempId, afterChordTempId)
+                            }
+                            isAddingChordDisabled={pendingChord !== null}
+                            isMeasureSelectMode={measureSelectMode || isPreview}
+                            isMeasureSelectSelected={measureSelectMode && selectedMeasureTempIds.includes(measure.tempId)}
+                            onMeasureTap={() => handleMeasureTap(measure.tempId)}
+                            isPreview={isPreview}
+                          />
+                        </div>
+                        {!isPreview && (
+                          <BarLine
+                            onClick={() => handleInsertMeasure(trailingAfterTempId)}
+                            isSelected={!measureSelectMode && isBarLineSelected(trailingAfterTempId)}
+                            isPastePhase={pastePhase}
+                            isPasteTarget={isPasteTargetBarLine(trailingAfterTempId)}
+                            onSelectPasteTarget={() => handleSelectPasteTarget(trailingAfterTempId)}
+                          />
+                        )}
+                      </Fragment>
+                    );
+                  })}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex items-center justify-center py-8">
@@ -774,181 +909,232 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       {visibleMeasures.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-10 h-[280px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
           <div className="mx-auto flex h-full max-w-4xl flex-col px-4 py-3">
-            {/* ナビゲーション + コード名/ステータス */}
-            <div className="flex shrink-0 items-center gap-3">
-              {/* 左: コード削除ボタン */}
-              <div className="w-16">
-                {selection?.type === "chord" && selectedChordData && !pendingChord && (
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveChord(selection.measureTempId, selection.chordTempId)}
-                    className="rounded px-2 py-1 text-xs text-destructive transition-colors hover:bg-destructive/10"
-                  >
-                    削除
-                  </button>
-                )}
-              </div>
-              {/* 中央: ナビ + コード名 */}
-              <div className="flex flex-1 items-center justify-center gap-3">
-                <button
-                  type="button"
-                  onClick={() => handleNavigate("left")}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
-                >
-                  ◀
-                </button>
-                {selection?.type === "chord" && selectedChordData ? (
-                  <span className={["font-mono text-xl font-bold", pendingChord ? "text-muted" : ""].join(" ")}>
-                    {pendingChord ? "--" : formatChord(selectedChordData, selectedMeasureKey.scoreKey, selectedMeasureKey.useFlats)}
-                  </span>
+
+            {/* 小節選択モード: ペーストフェーズ */}
+            {measureSelectMode && pastePhase ? (
+              <div className="flex h-full flex-col items-center justify-center gap-4">
+                {pastePreviewAfterTempId === undefined ? (
+                  <>
+                    <p className="text-sm text-muted">ペースト位置を選択してください</p>
+                    <button
+                      type="button"
+                      onClick={handleCancelPastePhase}
+                      className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                    >
+                      キャンセル
+                    </button>
+                  </>
                 ) : (
-                  <span className="text-xs text-muted">
-                    {!selection && "タップで選択"}
-                    {selection?.type === "chord" && "コード選択中"}
-                    {selection?.type === "chord_gap" && "コード挿入位置"}
-                    {selection?.type === "bar_line" && "小節挿入位置"}
-                    {selection?.type === "measure" && "小節選択中"}
-                  </span>
-                )}
-                <button
-                  type="button"
-                  onClick={() => handleNavigate("right")}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
-                >
-                  ▶
-                </button>
-              </div>
-              {/* 右: コード追加 + 小節追加 */}
-              <div className="flex w-16 items-center justify-end gap-1">
-                {selection && "measureTempId" in selection && (
-                  <button
-                    type="button"
-                    title="コードを追加"
-                    disabled={pendingChord !== null}
-                    onClick={() => {
-                      if (selection.type === "chord") {
-                        handleInsertChord(selection.measureTempId, selection.chordTempId);
-                      } else {
-                        handleAddChord(selection.measureTempId);
-                      }
-                    }}
-                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    +♩
-                  </button>
-                )}
-                {selection && (
-                  <button
-                    type="button"
-                    title="小節を追加"
-                    onClick={() => {
-                      const afterId = selection.type === "bar_line"
-                        ? selection.afterMeasureTempId
-                        : "measureTempId" in selection
-                          ? selection.measureTempId
-                          : null;
-                      handleInsertMeasure(afterId);
-                    }}
-                    className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
-                  >
-                    +𝄁
-                  </button>
-                )}
-              </div>
-            </div>
-
-            {/* アクションパネル: 選択状態に応じて切り替え */}
-            <div className="flex min-h-0 flex-1 items-start overflow-y-auto">
-              <div className="w-full">
-                {selection?.type === "chord" && (
-                  <ChordInputPanel
-                    chord={selectedChordData}
-                    scoreKey={selectedMeasureKey.scoreKey}
-                    useFlats={selectedMeasureKey.useFlats}
-                    isPending={!!pendingChord}
-                    onUpdateField={handleUpdateField}
-                  />
-                )}
-
-                {selection?.type === "chord_gap" && (
-                  <div className="mt-3 flex items-center justify-center rounded-lg border border-dashed border-border py-4">
-                    <button
-                      type="button"
-                      disabled={pendingChord !== null}
-                      onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
-                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
-                    >
-                      + コードを挿入
-                    </button>
-                  </div>
-                )}
-
-                {selection?.type === "bar_line" && (
-                  <div className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-dashed border-border py-4">
-                    <button
-                      type="button"
-                      onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
-                      className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-                    >
-                      + 小節を挿入
-                    </button>
-                    {clipboard && (
+                  <>
+                    <p className="text-sm text-muted">
+                      {clipboard?.length === 1 ? "1小節" : `${clipboard?.length}小節`}をここにペーストします
+                    </p>
+                    <div className="flex gap-3">
                       <button
                         type="button"
-                        onClick={() => handlePasteMeasure(selection.afterMeasureTempId)}
-                        className="rounded bg-secondary px-4 py-2 text-sm font-medium text-secondary-foreground transition-opacity hover:opacity-90"
+                        onClick={handleCancelPastePhase}
+                        className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                      >
+                        キャンセル
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleConfirmPaste}
+                        className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
                       >
                         ペースト
                       </button>
-                    )}
-                  </div>
-                )}
-
-                {selection?.type === "measure" && selectedMeasureData && (
-                  <div className="mt-3 space-y-3">
-                    {/* 転調 */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-medium text-muted">転調:</span>
-                      <select
-                        className="rounded border border-border bg-background px-2 py-1 text-sm"
-                        value={selectedMeasureData.key_name ?? ""}
-                        onChange={(e) => {
-                          markDirty();
-                          dispatch({
-                            type: "SET_MEASURE_KEY",
-                            measureTempId: selection.measureTempId,
-                            keyName: e.target.value || null,
-                          });
-                        }}
-                      >
-                        <option value="">なし</option>
-                        {KEY_NAMES.map((k) => (
-                          <option key={k} value={k}>{k}</option>
-                        ))}
-                      </select>
                     </div>
-
-                    {/* コピー・削除 */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        type="button"
-                        onClick={() => handleCopyMeasure(selection.measureTempId)}
-                        className="rounded border border-border px-3 py-1.5 text-sm transition-colors hover:bg-primary/5"
-                      >
-                        コピー
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMeasure(selection.measureTempId)}
-                        className="rounded border border-destructive/30 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/10"
-                      >
-                        小節を削除
-                      </button>
-                    </div>
-                  </div>
+                  </>
                 )}
               </div>
-            </div>
+            ) : measureSelectMode ? (
+              /* 小節選択モード: 選択フェーズ */
+              <div className="flex h-full flex-col items-center justify-center gap-4">
+                <p className="text-sm text-muted">
+                  {selectedMeasureTempIds.length === 0
+                    ? "コピーする小節をタップして選択してください"
+                    : `${selectedMeasureTempIds.length}小節を選択中`}
+                </p>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleToggleMeasureSelectMode}
+                    className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    disabled={selectedMeasureTempIds.length === 0}
+                    onClick={handleCopySelectedMeasures}
+                    className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    コピー
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* 通常モード */
+              <>
+                {/* ナビゲーション + コード名/ステータス */}
+                <div className="flex shrink-0 items-center gap-3">
+                  {/* 左: コード削除ボタン */}
+                  <div className="w-16">
+                    {selection?.type === "chord" && selectedChordData && !pendingChord && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveChord(selection.measureTempId, selection.chordTempId)}
+                        className="rounded px-2 py-1 text-xs text-destructive transition-colors hover:bg-destructive/10"
+                      >
+                        削除
+                      </button>
+                    )}
+                  </div>
+                  {/* 中央: ナビ + コード名 */}
+                  <div className="flex flex-1 items-center justify-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate("left")}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                    >
+                      ◀
+                    </button>
+                    {selection?.type === "chord" && selectedChordData ? (
+                      <span className={["font-mono text-xl font-bold", pendingChord ? "text-muted" : ""].join(" ")}>
+                        {pendingChord ? "--" : formatChord(selectedChordData, selectedMeasureKey.scoreKey, selectedMeasureKey.useFlats)}
+                      </span>
+                    ) : (
+                      <span className="text-xs text-muted">
+                        {!selection && "タップで選択"}
+                        {selection?.type === "chord" && "コード選択中"}
+                        {selection?.type === "chord_gap" && "コード挿入位置"}
+                        {selection?.type === "bar_line" && "小節挿入位置"}
+                        {selection?.type === "measure" && "小節選択中"}
+                      </span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => handleNavigate("right")}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                    >
+                      ▶
+                    </button>
+                  </div>
+                  {/* 右: コード追加 + 小節追加 */}
+                  <div className="flex w-16 items-center justify-end gap-1">
+                    {selection && "measureTempId" in selection && (
+                      <button
+                        type="button"
+                        title="コードを追加"
+                        disabled={pendingChord !== null}
+                        onClick={() => {
+                          if (selection.type === "chord") {
+                            handleInsertChord(selection.measureTempId, selection.chordTempId);
+                          } else {
+                            handleAddChord(selection.measureTempId);
+                          }
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10 disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        +♩
+                      </button>
+                    )}
+                    {selection && (
+                      <button
+                        type="button"
+                        title="小節を追加"
+                        onClick={() => {
+                          const afterId = selection.type === "bar_line"
+                            ? selection.afterMeasureTempId
+                            : "measureTempId" in selection
+                              ? selection.measureTempId
+                              : null;
+                          handleInsertMeasure(afterId);
+                        }}
+                        className="flex h-7 w-7 items-center justify-center rounded border border-border text-xs text-muted transition-colors hover:bg-primary/5 hover:text-foreground active:bg-primary/10"
+                      >
+                        +𝄁
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* アクションパネル: 選択状態に応じて切り替え */}
+                <div className="flex min-h-0 flex-1 items-start overflow-y-auto">
+                  <div className="w-full">
+                    {selection?.type === "chord" && (
+                      <ChordInputPanel
+                        chord={selectedChordData}
+                        scoreKey={selectedMeasureKey.scoreKey}
+                        useFlats={selectedMeasureKey.useFlats}
+                        isPending={!!pendingChord}
+                        onUpdateField={handleUpdateField}
+                      />
+                    )}
+
+                    {selection?.type === "chord_gap" && (
+                      <div className="mt-3 flex items-center justify-center rounded-lg border border-dashed border-border py-4">
+                        <button
+                          type="button"
+                          disabled={pendingChord !== null}
+                          onClick={() => handleInsertChord(selection.measureTempId, selection.afterChordTempId)}
+                          className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          + コードを挿入
+                        </button>
+                      </div>
+                    )}
+
+                    {selection?.type === "bar_line" && (
+                      <div className="mt-3 flex items-center justify-center gap-3 rounded-lg border border-dashed border-border py-4">
+                        <button
+                          type="button"
+                          onClick={() => handleInsertMeasure(selection.afterMeasureTempId)}
+                          className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+                        >
+                          + 小節を挿入
+                        </button>
+                      </div>
+                    )}
+
+                    {selection?.type === "measure" && selectedMeasureData && (
+                      <div className="mt-3 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-muted">転調:</span>
+                          <select
+                            className="rounded border border-border bg-background px-2 py-1 text-sm"
+                            value={selectedMeasureData.key_name ?? ""}
+                            onChange={(e) => {
+                              markDirty();
+                              dispatch({
+                                type: "SET_MEASURE_KEY",
+                                measureTempId: selection.measureTempId,
+                                keyName: e.target.value || null,
+                              });
+                            }}
+                          >
+                            <option value="">なし</option>
+                            {KEY_NAMES.map((k) => (
+                              <option key={k} value={k}>{k}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveMeasure(selection.measureTempId)}
+                            className="rounded border border-destructive/30 px-3 py-1.5 text-sm text-destructive transition-colors hover:bg-destructive/10"
+                          >
+                            小節を削除
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
