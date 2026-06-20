@@ -32,6 +32,7 @@ function BarLine({
   isPastePhase,
   isPasteTarget,
   onSelectPasteTarget,
+  hideButtons,
 }: {
   onClick: () => void;
   isSelected?: boolean;
@@ -39,8 +40,9 @@ function BarLine({
   isPastePhase?: boolean;
   isPasteTarget?: boolean;
   onSelectPasteTarget?: () => void;
+  hideButtons?: boolean;
 }) {
-  const showButtons = isSelected || isPasteTarget;
+  const showButtons = !hideButtons && (isSelected || isPasteTarget);
   return (
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className={[
@@ -53,7 +55,7 @@ function BarLine({
       ].join(" ")} />
       <div className={[
         "absolute flex-col gap-1",
-        showButtons ? "flex" : "hidden group-hover:flex",
+        showButtons ? "flex" : hideButtons ? "hidden" : "hidden group-hover:flex",
       ].join(" ")}>
         {isPastePhase ? (
           <button
@@ -804,6 +806,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     isPastePhase={pastePhase}
                     isPasteTarget={isPasteTargetBarLine(leadingAfterTempId)}
                     onSelectPasteTarget={() => handleSelectPasteTarget(leadingAfterTempId)}
+                    hideButtons={measureSelectMode && !pastePhase}
                   />
 
                   {row.map((measure) => {
@@ -853,6 +856,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             isPastePhase={pastePhase}
                             isPasteTarget={isPasteTargetBarLine(trailingAfterTempId)}
                             onSelectPasteTarget={() => handleSelectPasteTarget(trailingAfterTempId)}
+                            hideButtons={measureSelectMode && !pastePhase}
                           />
                         )}
                       </Fragment>
