@@ -167,6 +167,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const [measureSelectMode, setMeasureSelectMode] = useState(false);
   const [selectedMeasureTempIds, setSelectedMeasureTempIds] = useState<string[]>([]);
   const [pastePhase, setPastePhase] = useState(false);
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   // undefined=未選択, null=先頭前, string=その小節の後ろ
   const [pastePreviewAfterTempId, setPastePreviewAfterTempId] = useState<string | null | undefined>(undefined);
 
@@ -454,6 +455,19 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     });
   }
 
+  function handleDeleteSelectedMeasures() {
+    markDirty();
+    for (const tempId of selectedMeasureTempIds) {
+      dispatch({ type: "REMOVE_MEASURE", tempId });
+    }
+    setMeasureSelectMode(false);
+    setSelectedMeasureTempIds([]);
+    setPastePhase(false);
+    setPastePreviewAfterTempId(undefined);
+    setConfirmDeleteOpen(false);
+    setSelection(null);
+  }
+
   function handleCopySelectedMeasures() {
     const clips: ClipboardMeasure[] = selectedMeasureTempIds.map((tempId) => {
       const measure = measures.find((m) => m.tempId === tempId);
@@ -611,6 +625,23 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
   return (
     <>
+    <Dialog
+      open={confirmDeleteOpen}
+      title={`${selectedMeasureTempIds.length}小節を削除しますか？`}
+      onClose={() => setConfirmDeleteOpen(false)}
+      actions={
+        <div className="flex w-full justify-end gap-2">
+          <Button variant="secondary" onClick={() => setConfirmDeleteOpen(false)}>
+            キャンセル
+          </Button>
+          <Button variant="destructive" onClick={handleDeleteSelectedMeasures}>
+            削除
+          </Button>
+        </div>
+      }
+    >
+      <p className="text-sm text-muted">この操作は元に戻せません。</p>
+    </Dialog>
     <Dialog
       open={pendingKeyChange !== null}
       title={`キーを ${pendingKeyChange?.oldKeyName ?? ""} から ${pendingKeyChange?.newKeyName ?? ""} に変更します`}
@@ -955,7 +986,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
               <div className="flex h-full flex-col items-center justify-center gap-4">
                 <p className="text-sm text-muted">
                   {selectedMeasureTempIds.length === 0
-                    ? "コピーする小節をタップして選択してください"
+                    ? "操作する小節をタップして選択してください"
                     : `${selectedMeasureTempIds.length}小節を選択中`}
                 </p>
                 <div className="flex gap-3">
@@ -965,6 +996,14 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
                   >
                     キャンセル
+                  </button>
+                  <button
+                    type="button"
+                    disabled={selectedMeasureTempIds.length === 0}
+                    onClick={() => setConfirmDeleteOpen(true)}
+                    className="rounded border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    削除
                   </button>
                   <button
                     type="button"
