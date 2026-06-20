@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Score } from "@/features/scores/types";
+import { formatKeyDisplay } from "@/features/scores/types";
 import { Card } from "@/features/shared";
 
 type ScoreCardProps = {
@@ -15,7 +16,7 @@ export function ScoreCard({ score }: ScoreCardProps) {
           <p className="mt-0.5 text-sm text-muted">{score.artist}</p>
         )}
         <div className="mt-2 flex flex-wrap gap-3 text-sm text-muted">
-          <span>Key: {score.key_name}</span>
+          <span>Key: {formatKeyDisplay(score.key_name, score.key_mode)}</span>
           {score.tempo && <span>BPM: {score.tempo}</span>}
           {score.time_signature && <span>{score.time_signature}</span>}
         </div>

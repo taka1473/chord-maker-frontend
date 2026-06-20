@@ -16,6 +16,7 @@ export function NewScoreClient() {
     title: "",
     artist: "",
     key_name: "C",
+    key_mode: "major",
     tempo: "",
     time_signature: "4/4",
     tag_names: [],

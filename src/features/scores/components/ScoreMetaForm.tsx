@@ -1,4 +1,4 @@
-import type { ScoreFormData } from "@/features/scores/types";
+import type { ScoreFormData, KeyMode } from "@/features/scores/types";
 import { KEY_NAMES, TIME_SIGNATURES } from "@/features/scores/types";
 import { Input, Select, Label } from "@/features/shared";
 
@@ -45,16 +45,33 @@ export function ScoreMetaForm({ formData, onChange }: ScoreMetaFormProps) {
         <Label>
           キー <span className="text-destructive">*</span>
         </Label>
-        <Select
-          value={formData.key_name}
-          onChange={(e) => handleChange("key_name", e.target.value)}
-        >
-          {KEY_NAMES.map((key) => (
-            <option key={key} value={key}>
-              {key}
-            </option>
-          ))}
-        </Select>
+        <div className="flex gap-2">
+          <Select
+            value={formData.key_name}
+            onChange={(e) => handleChange("key_name", e.target.value)}
+          >
+            {KEY_NAMES.map((key) => (
+              <option key={key} value={key}>
+                {key}
+              </option>
+            ))}
+          </Select>
+          <div className="flex items-center gap-3 px-1">
+            {(["major", "minor"] as KeyMode[]).map((mode) => (
+              <label key={mode} className="flex items-center gap-1 cursor-pointer text-sm">
+                <input
+                  type="radio"
+                  name="key_mode"
+                  value={mode}
+                  checked={formData.key_mode === mode}
+                  onChange={() => handleChange("key_mode", mode)}
+                  className="accent-primary"
+                />
+                {mode === "major" ? "Major" : "Minor"}
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
 
       <div>

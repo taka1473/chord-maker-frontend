@@ -120,6 +120,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     title: initialData.title,
     artist: initialData.artist ?? "",
     key_name: resolveKeyName(initialData),
+    key_mode: initialData.key_mode ?? "major",
     tempo: initialData.tempo?.toString() ?? "",
     time_signature: initialData.time_signature ?? "",
     tag_names: initialData.tag_names ?? [],

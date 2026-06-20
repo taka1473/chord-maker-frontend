@@ -19,6 +19,7 @@ export function useCreateScore() {
             title: formData.title,
             artist: formData.artist || undefined,
             key_name: formData.key_name,
+            key_mode: formData.key_mode,
             tempo: formData.tempo ? Number(formData.tempo) : undefined,
             time_signature: formData.time_signature || undefined,
             tag_names: formData.tag_names.length > 0 ? formData.tag_names : undefined,

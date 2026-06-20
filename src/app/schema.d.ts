@@ -404,6 +404,8 @@ export interface paths {
                         score?: {
                             title: string;
                             key_name: string;
+                            /** @enum {string} */
+                            key_mode: "major" | "minor";
                             tempo?: number;
                             time_signature?: string;
                             published?: boolean;
@@ -521,6 +523,8 @@ export interface paths {
                         score?: {
                             title?: string;
                             key_name?: string;
+                            /** @enum {string} */
+                            key_mode?: "major" | "minor";
                             tempo?: number;
                             time_signature?: string;
                             published?: boolean;
@@ -553,6 +557,7 @@ export interface paths {
                             title?: string;
                             key?: number;
                             key_name?: string;
+                            key_mode?: string;
                             tempo?: number | null;
                             time_signature?: string | null;
                             measures?: {

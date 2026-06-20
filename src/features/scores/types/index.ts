@@ -2,6 +2,8 @@ import type { components } from "@/app/schema";
 
 export type ChordType = components["schemas"]["ChordType"];
 
+export type KeyMode = "major" | "minor";
+
 export type Score = {
   id: number;
   slug: string;
@@ -9,6 +11,7 @@ export type Score = {
   artist: string | null;
   key: number;
   key_name: string;
+  key_mode: KeyMode;
   tempo: number | null;
   time_signature: string | null;
   lyrics: string | null;
@@ -41,6 +44,7 @@ export type WholeScore = {
   artist: string | null;
   key: number;
   key_name: string;
+  key_mode: KeyMode;
   tempo: number | null;
   time_signature: string | null;
   lyrics: string | null;
@@ -112,6 +116,7 @@ export type ScoreFormData = {
   title: string;
   artist: string;
   key_name: string;
+  key_mode: KeyMode;
   tempo: string;
   time_signature: string;
   tag_names: string[];
@@ -143,6 +148,10 @@ export function keyNameToNumber(keyName: string): number {
 export function getKeyNameFromNumber(keyNumber: number, useFlats: boolean): string {
   const names = useFlats ? NOTE_NAMES_FLAT : NOTE_NAMES_SHARP;
   return names[((keyNumber % 12) + 12) % 12] ?? "C";
+}
+
+export function formatKeyDisplay(keyName: string, keyMode: KeyMode): string {
+  return keyMode === "minor" ? `${keyName}m` : keyName;
 }
 
 // --- ユーティリティ ---

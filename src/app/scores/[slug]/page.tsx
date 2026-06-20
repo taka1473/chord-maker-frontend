@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { fetchWholeScoreServer } from "@/lib/fetch-score";
 import { ScoreDetailClient } from "@/features/scores/components/ScoreDetailClient";
+import { formatKeyDisplay } from "@/features/scores/types";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -20,7 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     : score.title;
 
   const descriptionParts = [
-    `Key: ${score.key_name}`,
+    `Key: ${formatKeyDisplay(score.key_name, score.key_mode)}`,
     score.tempo ? `BPM: ${score.tempo}` : null,
     score.time_signature ? `拍子: ${score.time_signature}` : null,
   ].filter(Boolean);
