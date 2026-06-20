@@ -496,10 +496,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       prevTempId = measureTempId;
     }
 
-    // ペースト後: ペーストフェーズを終了し、小節選択モードに戻る
-    setPastePhase(false);
-    setPastePreviewAfterTempId(undefined);
-    setSelectedMeasureTempIds([]);
+    // ペースト後: 最後に貼り付けた小節の後ろをプレビュー位置に設定してペーストフェーズを維持
+    setPastePreviewAfterTempId(prevTempId);
   }
 
   function handleCancelPastePhase() {
