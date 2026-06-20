@@ -48,10 +48,10 @@ function BarLine({
       <div className={[
         "h-full w-px transition-all",
         hideBar && !isSelected && !isPasteTarget
-          ? "bg-transparent group-hover:bg-primary"
+          ? hideButtons ? "bg-transparent" : "bg-transparent group-hover:bg-primary"
           : isSelected || isPasteTarget
             ? "w-0.5 bg-primary"
-            : "bg-border group-hover:w-0.5 group-hover:bg-primary",
+            : hideButtons ? "bg-border" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
       ].join(" ")} />
       <div className={[
         "absolute flex-col gap-1",
