@@ -2,15 +2,19 @@
 
 import { useState, useEffect } from "react";
 import { apiClient } from "@/lib/api-client";
+import { useAuth } from "@/features/auth/contexts/AuthContext";
 import type { WholeScore } from "@/features/scores/types";
 
 export function useWholeScore(slug: string, guestToken?: string | null, serverData?: WholeScore) {
   const [wholeScore, setWholeScore] = useState<WholeScore | null>(serverData ?? null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(!serverData);
+  const { loading: authLoading } = useAuth();
 
   useEffect(() => {
     if (serverData) return;
+    // Firebase Auth の初期化を待ってから fetch する（リロード時の 404 防止）
+    if (authLoading) return;
 
     let cancelled = false;
 
@@ -41,7 +45,7 @@ export function useWholeScore(slug: string, guestToken?: string | null, serverDa
     return () => {
       cancelled = true;
     };
-  }, [slug, guestToken, serverData]);
+  }, [slug, guestToken, serverData, authLoading]);
 
-  return { wholeScore, error, loading };
+  return { wholeScore, error, loading: loading || authLoading };
 }
