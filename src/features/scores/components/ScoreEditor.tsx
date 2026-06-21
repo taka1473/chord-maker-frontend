@@ -531,6 +531,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       if (guestToken) {
         setShowLoginPromo(true);
       } else {
+        router.refresh();
         router.push(`/scores/${scoreSlug}`);
       }
     }
