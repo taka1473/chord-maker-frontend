@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useReducer, useState, useEffect, useMemo, useRef } from "react";
+import { useReducer, useState, useEffect, useMemo, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { ScoreMetaForm } from "@/features/scores/components/ScoreMetaForm";
 import { TagInput } from "@/features/scores/components/TagInput";
@@ -51,19 +51,51 @@ function BarLine({
   // ペーストフェーズ中は常に↓ボタンを表示（モバイルでホバーなしにタップできるよう）
   const showButtons = !hideButtons && (isSelected || isPasteTarget || !!isPastePhase);
   return (
-    <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
-      <div className={[
-        "h-full w-px transition-all",
-        hideBar && !isSelected && !isPasteTarget
-          ? hideButtons ? "bg-transparent" : "bg-transparent group-hover:bg-primary"
-          : isSelected || isPasteTarget
-            ? "w-0.5 bg-primary"
-            : hideButtons ? "bg-border" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
-      ].join(" ")} />
+    <div className="inline-flex shrink-0 self-stretch">
+      {/* 縦線 + 小節挿入ボタン */}
+      <div className="group/bar relative flex h-full w-3 items-center justify-center">
+        <div className={[
+          "h-full w-px transition-all",
+          hideBar && !isSelected && !isPasteTarget
+            ? hideButtons ? "bg-transparent" : "bg-transparent group-hover/bar:bg-primary"
+            : isSelected || isPasteTarget
+              ? "w-0.5 bg-primary"
+              : hideButtons ? "bg-border" : "bg-border group-hover/bar:w-0.5 group-hover/bar:bg-primary",
+        ].join(" ")} />
+        <div className={[
+          "absolute flex-col gap-1",
+          showButtons ? "flex" : hideButtons ? "hidden" : "hidden group-hover/bar:flex",
+        ].join(" ")}>
+          {isPastePhase ? (
+            <button
+              type="button"
+              onClick={onSelectPasteTarget}
+              className={[
+                "flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[10px] shadow hover:opacity-90",
+                isPasteTarget
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-secondary text-secondary-foreground",
+              ].join(" ")}
+              title="ここにペースト"
+            >
+              ↓
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onClick}
+              className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow hover:opacity-90"
+              title="小節を挿入"
+            >
+              +
+            </button>
+          )}
+        </div>
+      </div>
+      {/* ↵ マーカー（フロー内 — 折り返し幅に含める） */}
       {showRowBreakMarker && onRemoveRowBreak && (
-        <div className="absolute left-full ml-1 top-1/2 -translate-y-1/2">
         <div
-          className="group/rb relative"
+          className="group/rb relative ml-1 flex items-center"
           onMouseLeave={() => setRowBreakPending(false)}
         >
           <button
@@ -86,37 +118,7 @@ function BarLine({
             ×
           </button>
         </div>
-        </div>
       )}
-      <div className={[
-        "absolute flex-col gap-1",
-        showButtons ? "flex" : hideButtons ? "hidden" : "hidden group-hover:flex",
-      ].join(" ")}>
-        {isPastePhase ? (
-          <button
-            type="button"
-            onClick={onSelectPasteTarget}
-            className={[
-              "flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[10px] shadow hover:opacity-90",
-              isPasteTarget
-                ? "bg-primary text-primary-foreground"
-                : "bg-secondary text-secondary-foreground",
-            ].join(" ")}
-            title="ここにペースト"
-          >
-            ↓
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onClick}
-            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary text-[10px] text-primary-foreground shadow hover:opacity-90"
-            title="小節を挿入"
-          >
-            +
-          </button>
-        )}
-      </div>
     </div>
   );
 }
@@ -915,7 +917,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     const showRowBreakMarker = !measureSelectMode && !pastePhase && isLastInRow && !!(nextRowFirstMeasure?.row_break_before);
 
                     return (
-                      <Fragment key={measure.tempId}>
+                      <div key={measure.tempId} className="inline-flex items-stretch">
                         <div>
                           <MeasureEditor
                             measure={measure}
@@ -959,7 +961,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             onRemoveRowBreak={showRowBreakMarker && nextRowFirstMeasure ? () => handleToggleRowBreak(nextRowFirstMeasure.tempId) : undefined}
                           />
                         )}
-                      </Fragment>
+                      </div>
                     );
                   })}
                 </div>
