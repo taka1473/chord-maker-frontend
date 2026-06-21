@@ -531,6 +531,9 @@ export interface paths {
                             measures_attributes?: {
                                 id?: number;
                                 position?: number;
+                                key_name?: string | null;
+                                /** @enum {string|null} */
+                                key_mode?: "major" | "minor" | null;
                                 _destroy?: boolean;
                                 chords_attributes?: {
                                     id?: number;

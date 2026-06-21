@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import type { EditableMeasure } from "@/features/scores/types";
+import { formatKeyDisplay } from "@/features/scores/types";
 import { ChordDisplay } from "@/features/scores/components/ChordDisplay";
 
 type MeasureEditorProps = {
@@ -124,7 +125,7 @@ export function MeasureEditor({
       {measure.key_name && (
         <div className="mb-1">
           <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-            Key: {measure.key_name}
+            Key: {formatKeyDisplay(measure.key_name, measure.key_mode ?? "major")}
           </span>
         </div>
       )}

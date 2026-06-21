@@ -5,11 +5,13 @@ import Link from "next/link";
 import type { WholeScore } from "@/features/scores/types";
 import {
   formatChord,
+  formatKeyDisplay,
   isFlatKey,
   keyNameToNumber,
   getKeyNameFromNumber,
   KEY_NAMES,
 } from "@/features/scores/types";
+import type { KeyMode } from "@/features/scores/types";
 
 type ChordChartProps = {
   wholeScore: WholeScore;
@@ -18,12 +20,14 @@ type ChordChartProps = {
 function buildMeasuresRenderable(
   sortedMeasures: WholeScore["measures"],
   baseKey: number,
+  baseKeyMode: KeyMode,
   transposition: number,
   selectedUseFlats: boolean,
 ) {
   const baseKeyTransposed = (baseKey + transposition) % 12;
   let currentKey = baseKeyTransposed;
   let currentFlats = selectedUseFlats;
+  let currentKeyMode: KeyMode = baseKeyMode;
 
   return sortedMeasures.map((measure) => {
     const prevKey = currentKey;
@@ -33,18 +37,23 @@ function buildMeasuresRenderable(
       currentFlats = isFlatKey(
         getKeyNameFromNumber(currentKey, isFlatKey(measure.key_name))
       );
+      currentKeyMode = measure.key_mode ?? "major";
     } else if (!measure.key_name) {
       currentKey = baseKeyTransposed;
       currentFlats = selectedUseFlats;
+      currentKeyMode = baseKeyMode;
     }
 
     const keyChanged = currentKey !== prevKey;
+    const transposedKeyName = keyChanged
+      ? getKeyNameFromNumber(currentKey, currentFlats)
+      : null;
     return {
       measure,
       effectiveKey: currentKey,
       effectiveFlats: currentFlats,
-      transposedKeyName: keyChanged
-        ? getKeyNameFromNumber(currentKey, currentFlats)
+      transposedKeyDisplay: transposedKeyName
+        ? formatKeyDisplay(transposedKeyName, currentKeyMode)
         : null,
     };
   });
@@ -63,8 +72,8 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
 
   // 有効キーを小節順に走査して決定（転調オフセットを適用）
   const measuresRenderable = useMemo(
-    () => buildMeasuresRenderable(sortedMeasures, wholeScore.key, transposition, selectedUseFlats),
-    [sortedMeasures, wholeScore.key, transposition, selectedUseFlats],
+    () => buildMeasuresRenderable(sortedMeasures, wholeScore.key, wholeScore.key_mode, transposition, selectedUseFlats),
+    [sortedMeasures, wholeScore.key, wholeScore.key_mode, transposition, selectedUseFlats],
   );
 
   return (
@@ -117,7 +126,7 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
           }
           return rows.map((row, rowIdx) => (
             <div key={rowIdx} className="flex items-stretch">
-              {row.map(({ measure, effectiveKey, effectiveFlats, transposedKeyName }) => {
+              {row.map(({ measure, effectiveKey, effectiveFlats, transposedKeyDisplay }) => {
                 const sortedChords = [...measure.chords].sort(
                   (a, b) => a.position - b.position
                 );
@@ -126,10 +135,10 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
                     key={measure.id}
                     className="border-l border-border px-3 py-1 first:border-l-0 first:pl-0"
                   >
-                    {transposedKeyName && (
+                    {transposedKeyDisplay && (
                       <div className="mb-1">
                         <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                          Key: {transposedKeyName}
+                          Key: {transposedKeyDisplay}
                         </span>
                       </div>
                     )}

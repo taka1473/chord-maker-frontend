@@ -1,4 +1,4 @@
-import type { EditableMeasure, EditableChord } from "@/features/scores/types";
+import type { EditableMeasure, EditableChord, KeyMode } from "@/features/scores/types";
 import { keyNameToNumber, getKeyNameFromNumber, isFlatKey } from "@/features/scores/types";
 
 let tempIdCounter = 0;
@@ -9,7 +9,7 @@ export function nextTempId(): string {
 export type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
   | { type: "ADD_MEASURE"; newTempId: string }
-  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null; newTempId: string; initialKeyName?: string | null }
+  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null; newTempId: string; initialKeyName?: string | null; initialKeyMode?: KeyMode | null }
   | { type: "REMOVE_MEASURE"; tempId: string }
   | { type: "ADD_CHORD"; measureTempId: string; chordTempId: string }
   | {
@@ -27,6 +27,7 @@ export type MeasureAction =
       value: number | string;
     }
   | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null }
+  | { type: "SET_MEASURE_KEY_MODE"; measureTempId: string; keyMode: KeyMode }
   | { type: "APPLY_KEY_CHANGE"; oldKey: number; newKey: number; mode: "relative" | "absolute" };
 
 export function measuresReducer(
@@ -41,10 +42,11 @@ export function measuresReducer(
       const visibleMeasures = state.filter((m) => !m._destroy);
       const lastMeasure = visibleMeasures[visibleMeasures.length - 1];
       const inheritedKeyName = lastMeasure?.key_name ?? null;
+      const inheritedKeyMode = lastMeasure?.key_mode ?? null;
       const maxPos = visibleMeasures.reduce((max, m) => Math.max(max, m.position), 0);
       return [
         ...state,
-        { tempId: action.newTempId, position: maxPos + 1, key_name: inheritedKeyName, chords: [] },
+        { tempId: action.newTempId, position: maxPos + 1, key_name: inheritedKeyName, key_mode: inheritedKeyMode, chords: [] },
       ];
     }
 
@@ -56,11 +58,16 @@ export function measuresReducer(
         action.initialKeyName !== undefined
           ? (action.initialKeyName ?? null)
           : (prevMeasure?.key_name ?? null);
+      const newKeyMode =
+        action.initialKeyMode !== undefined
+          ? (action.initialKeyMode ?? null)
+          : (prevMeasure?.key_mode ?? null);
 
       const newMeasure: EditableMeasure = {
         tempId: action.newTempId,
         position: 0,
         key_name: newKeyName,
+        key_mode: newKeyMode,
         chords: [],
       };
 
@@ -183,15 +190,30 @@ export function measuresReducer(
       if (oldKeyName === newKeyName) return state;
 
       const result = [...state];
-      result[targetIdx] = { ...target, key_name: newKeyName };
+      // key_name を null にクリアする場合は key_mode も null にする
+      // key_name を新規設定する場合、key_mode がまだなければ "major" をデフォルト
+      const newKeyMode = newKeyName === null
+        ? null
+        : (target.key_mode ?? "major");
+      result[targetIdx] = { ...target, key_name: newKeyName, key_mode: newKeyMode };
 
       for (let i = targetIdx + 1; i < result.length; i++) {
         const m = result[i]!;
         if (m._destroy) continue;
         if ((m.key_name ?? null) !== oldKeyName) break;
-        result[i] = { ...m, key_name: newKeyName };
+        const mNewKeyMode = newKeyName === null ? null : (m.key_mode ?? "major");
+        result[i] = { ...m, key_name: newKeyName, key_mode: mNewKeyMode };
       }
 
+      return result;
+    }
+
+    case "SET_MEASURE_KEY_MODE": {
+      const targetIdx = state.findIndex((m) => m.tempId === action.measureTempId);
+      if (targetIdx === -1) return state;
+
+      const result = [...state];
+      result[targetIdx] = { ...result[targetIdx]!, key_mode: action.keyMode };
       return result;
     }
 

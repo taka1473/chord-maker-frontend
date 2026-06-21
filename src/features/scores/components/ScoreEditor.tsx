@@ -15,8 +15,9 @@ import type {
   EditableMeasure,
   EditableChord,
   ChordType,
+  KeyMode,
 } from "@/features/scores/types";
-import { KEY_NAMES, isFlatKey, formatChord, keyNameToNumber, getKeyNameFromNumber } from "@/features/scores/types";
+import { KEY_NAMES, isFlatKey, formatChord, keyNameToNumber, getKeyNameFromNumber, formatKeyDisplay } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
@@ -91,6 +92,7 @@ function BarLine({
 
 type ClipboardMeasure = {
   key_name?: string | null;
+  key_mode?: KeyMode | null;
   chords: { root_offset: number; bass_offset: number; chord_type: ChordType }[];
 };
 
@@ -118,6 +120,7 @@ function wholeScoreToEditable(ws: WholeScore): EditableMeasure[] {
     id: m.id,
     position: m.position,
     key_name: m.key_name,
+    key_mode: m.key_mode,
     chords: m.chords.map((c) => ({
       tempId: nextTempId(),
       id: c.id,
@@ -313,7 +316,9 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       const ek = effectiveKeys.get(m.tempId);
       const curKey = ek?.scoreKey ?? scoreKey;
       if (curKey !== prevKey) {
-        map.set(m.tempId, getKeyNameFromNumber(curKey, ek?.useFlats ?? useFlats));
+        const keyName = getKeyNameFromNumber(curKey, ek?.useFlats ?? useFlats);
+        const keyMode = m.key_name ? (m.key_mode ?? "major") : "major";
+        map.set(m.tempId, formatKeyDisplay(keyName, keyMode));
       }
       prevKey = curKey;
     }
@@ -488,6 +493,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       const visChords = measure.chords.filter((c) => !c._destroy);
       return {
         key_name: measure.key_name,
+        key_mode: measure.key_mode,
         chords: visChords.map((c) => ({
           root_offset: c.root_offset,
           bass_offset: c.bass_offset,
@@ -511,7 +517,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     let prevTempId: string | null = pastePreviewAfterTempId;
     for (const clip of clipboard) {
       const measureTempId = nextTempId();
-      dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId: prevTempId, newTempId: measureTempId, initialKeyName: clip.key_name ?? null });
+      dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId: prevTempId, newTempId: measureTempId, initialKeyName: clip.key_name ?? null, initialKeyMode: clip.key_mode ?? null });
       for (const chord of clip.chords) {
         const chordTempId = nextTempId();
         dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
@@ -601,6 +607,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       tempId: `__preview_${i}`,
       position: 0,
       key_name: clip.key_name,
+      key_mode: clip.key_mode,
       chords: clip.chords.map((c, j) => ({
         tempId: `__preview_chord_${i}_${j}`,
         position: j + 1,
@@ -1169,7 +1176,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
                     {selection?.type === "measure" && selectedMeasureData && (
                       <div className="mt-3 space-y-3">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-medium text-muted">転調:</span>
                           <select
                             className="rounded border border-border bg-background px-2 py-1 text-sm"
@@ -1188,6 +1195,30 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                               <option key={k} value={k}>{k}</option>
                             ))}
                           </select>
+                          {selectedMeasureData.key_name && (
+                            <div className="flex items-center gap-2">
+                              {(["major", "minor"] as KeyMode[]).map((mode) => (
+                                <label key={mode} className="flex items-center gap-1 cursor-pointer text-xs">
+                                  <input
+                                    type="radio"
+                                    name={`measure_key_mode_${selection.measureTempId}`}
+                                    value={mode}
+                                    checked={(selectedMeasureData.key_mode ?? "major") === mode}
+                                    onChange={() => {
+                                      markDirty();
+                                      dispatch({
+                                        type: "SET_MEASURE_KEY_MODE",
+                                        measureTempId: selection.measureTempId,
+                                        keyMode: mode,
+                                      });
+                                    }}
+                                    className="accent-primary"
+                                  />
+                                  {mode === "major" ? "Major" : "Minor"}
+                                </label>
+                              ))}
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2">
                           <button

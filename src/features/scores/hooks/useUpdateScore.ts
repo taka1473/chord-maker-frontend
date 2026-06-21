@@ -13,6 +13,7 @@ function toMeasuresAttributes(measures: EditableMeasure[]) {
     id: measure.id,
     position: measure.position,
     key_name: measure.key_name ?? null,
+    key_mode: measure.key_mode ?? null,
     _destroy: measure._destroy,
     chords_attributes: measure.chords.map((chord) => ({
       id: chord.id,
