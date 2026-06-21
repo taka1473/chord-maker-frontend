@@ -877,7 +877,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             isAddingChordDisabled={pendingChord !== null}
                             isMeasureSelectMode={measureSelectMode || isPreview}
                             isMeasureSelectSelected={measureSelectMode && selectedMeasureTempIds.includes(measure.tempId)}
-                            onMeasureTap={() => handleMeasureTap(measure.tempId)}
+                            onMeasureTap={pastePhase ? undefined : () => handleMeasureTap(measure.tempId)}
                             isPreview={isPreview}
                           />
                         </div>

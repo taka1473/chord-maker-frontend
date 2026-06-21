@@ -71,9 +71,13 @@ export function MeasureEditor({
           "px-3 py-1 transition-colors",
           isPreview
             ? "pointer-events-none opacity-50"
-            : isMeasureSelectSelected
-              ? "cursor-pointer bg-primary/15 ring-2 ring-inset ring-primary"
-              : "cursor-pointer hover:bg-primary/5",
+            : !onMeasureTap
+              ? isMeasureSelectSelected
+                ? "bg-primary/15 ring-2 ring-inset ring-primary"
+                : ""
+              : isMeasureSelectSelected
+                ? "cursor-pointer bg-primary/15 ring-2 ring-inset ring-primary"
+                : "cursor-pointer hover:bg-primary/5",
         ].join(" ")}
         onClick={isPreview ? undefined : onMeasureTap}
       >
