@@ -16,7 +16,7 @@ import type {
   EditableChord,
   ChordType,
 } from "@/features/scores/types";
-import { KEY_NAMES, isFlatKey, formatChord, keyNameToNumber } from "@/features/scores/types";
+import { KEY_NAMES, isFlatKey, formatChord, keyNameToNumber, getKeyNameFromNumber } from "@/features/scores/types";
 import type { Selection } from "@/features/scores/lib/selection";
 import { selectionEquals, buildNavItems } from "@/features/scores/lib/selection";
 import { measuresReducer, nextTempId } from "@/features/scores/lib/measures-reducer";
@@ -296,17 +296,29 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
   const effectiveKeys = useMemo(() => {
     const map = new Map<string, { scoreKey: number; useFlats: boolean }>();
-    let currentKey = scoreKey;
-    let currentFlats = useFlats;
     for (const m of visibleMeasures) {
       if (m.key_name) {
-        currentKey = KEY_MAP[m.key_name] ?? scoreKey;
-        currentFlats = isFlatKey(m.key_name);
+        map.set(m.tempId, { scoreKey: KEY_MAP[m.key_name] ?? scoreKey, useFlats: isFlatKey(m.key_name) });
+      } else {
+        map.set(m.tempId, { scoreKey, useFlats });
       }
-      map.set(m.tempId, { scoreKey: currentKey, useFlats: currentFlats });
     }
     return map;
   }, [visibleMeasures, scoreKey, useFlats]);
+
+  const keyBadges = useMemo(() => {
+    const map = new Map<string, string>();
+    let prevKey = scoreKey;
+    for (const m of visibleMeasures) {
+      const ek = effectiveKeys.get(m.tempId);
+      const curKey = ek?.scoreKey ?? scoreKey;
+      if (curKey !== prevKey) {
+        map.set(m.tempId, getKeyNameFromNumber(curKey, ek?.useFlats ?? useFlats));
+      }
+      prevKey = curKey;
+    }
+    return map;
+  }, [visibleMeasures, effectiveKeys, scoreKey, useFlats]);
 
   const navItems = useMemo(() => buildNavItems(visibleMeasures), [visibleMeasures]);
 
@@ -499,10 +511,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     let prevTempId: string | null = pastePreviewAfterTempId;
     for (const clip of clipboard) {
       const measureTempId = nextTempId();
-      dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId: prevTempId, newTempId: measureTempId });
-      if (clip.key_name) {
-        dispatch({ type: "SET_MEASURE_KEY", measureTempId, keyName: clip.key_name });
-      }
+      dispatch({ type: "INSERT_MEASURE_AFTER", afterTempId: prevTempId, newTempId: measureTempId, initialKeyName: clip.key_name ?? null });
       for (const chord of clip.chords) {
         const chordTempId = nextTempId();
         dispatch({ type: "ADD_CHORD", measureTempId, chordTempId });
@@ -857,6 +866,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             measure={measure}
                             scoreKey={measureScoreKey}
                             useFlats={measureUseFlats}
+                            keyBadgeName={keyBadges.get(measure.tempId) ?? null}
                             selectedChordTempId={
                               !measureSelectMode && selection?.type === "chord" && selection.measureTempId === measure.tempId
                                 ? selection.chordTempId

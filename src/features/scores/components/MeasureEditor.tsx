@@ -6,6 +6,7 @@ type MeasureEditorProps = {
   measure: EditableMeasure;
   scoreKey: number;
   useFlats?: boolean;
+  keyBadgeName?: string | null;
   selectedChordTempId: string | null;
   isMeasureSelected: boolean;
   onSelectMeasure: () => void;
@@ -48,6 +49,7 @@ export function MeasureEditor({
   measure,
   scoreKey,
   useFlats = false,
+  keyBadgeName,
   selectedChordTempId,
   isMeasureSelected,
   onSelectMeasure,
@@ -81,10 +83,10 @@ export function MeasureEditor({
         ].join(" ")}
         onClick={isPreview ? undefined : onMeasureTap}
       >
-        {measure.key_name && (
+        {keyBadgeName && (
           <div className="mb-1">
             <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-              Key: {measure.key_name}
+              Key: {keyBadgeName}
             </span>
           </div>
         )}

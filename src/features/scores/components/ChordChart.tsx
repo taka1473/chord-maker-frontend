@@ -21,22 +21,30 @@ function buildMeasuresRenderable(
   transposition: number,
   selectedUseFlats: boolean,
 ) {
-  let currentKey = (baseKey + transposition) % 12;
+  const baseKeyTransposed = (baseKey + transposition) % 12;
+  let currentKey = baseKeyTransposed;
   let currentFlats = selectedUseFlats;
 
   return sortedMeasures.map((measure) => {
+    const prevKey = currentKey;
+
     if (measure.key_name && measure.key != null) {
       currentKey = (measure.key + transposition) % 12;
       currentFlats = isFlatKey(
         getKeyNameFromNumber(currentKey, isFlatKey(measure.key_name))
       );
+    } else if (!measure.key_name) {
+      currentKey = baseKeyTransposed;
+      currentFlats = selectedUseFlats;
     }
+
+    const keyChanged = currentKey !== prevKey;
     return {
       measure,
       effectiveKey: currentKey,
       effectiveFlats: currentFlats,
-      transposedKeyName: measure.key_name
-        ? getKeyNameFromNumber(currentKey, isFlatKey(measure.key_name))
+      transposedKeyName: keyChanged
+        ? getKeyNameFromNumber(currentKey, currentFlats)
         : null,
     };
   });

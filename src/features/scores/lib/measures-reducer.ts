@@ -9,7 +9,7 @@ export function nextTempId(): string {
 export type MeasureAction =
   | { type: "INIT"; measures: EditableMeasure[] }
   | { type: "ADD_MEASURE"; newTempId: string }
-  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null; newTempId: string }
+  | { type: "INSERT_MEASURE_AFTER"; afterTempId: string | null; newTempId: string; initialKeyName?: string | null }
   | { type: "REMOVE_MEASURE"; tempId: string }
   | { type: "ADD_CHORD"; measureTempId: string; chordTempId: string }
   | {
@@ -38,20 +38,29 @@ export function measuresReducer(
       return action.measures;
 
     case "ADD_MEASURE": {
-      const maxPos = state.reduce(
-        (max, m) => (m._destroy ? max : Math.max(max, m.position)),
-        0
-      );
+      const visibleMeasures = state.filter((m) => !m._destroy);
+      const lastMeasure = visibleMeasures[visibleMeasures.length - 1];
+      const inheritedKeyName = lastMeasure?.key_name ?? null;
+      const maxPos = visibleMeasures.reduce((max, m) => Math.max(max, m.position), 0);
       return [
         ...state,
-        { tempId: action.newTempId, position: maxPos + 1, chords: [] },
+        { tempId: action.newTempId, position: maxPos + 1, key_name: inheritedKeyName, chords: [] },
       ];
     }
 
     case "INSERT_MEASURE_AFTER": {
+      const prevMeasure = action.afterTempId
+        ? state.find((m) => m.tempId === action.afterTempId)
+        : null;
+      const newKeyName =
+        action.initialKeyName !== undefined
+          ? (action.initialKeyName ?? null)
+          : (prevMeasure?.key_name ?? null);
+
       const newMeasure: EditableMeasure = {
         tempId: action.newTempId,
         position: 0,
+        key_name: newKeyName,
         chords: [],
       };
 
@@ -163,12 +172,28 @@ export function measuresReducer(
         };
       });
 
-    case "SET_MEASURE_KEY":
-      return state.map((m) =>
-        m.tempId === action.measureTempId
-          ? { ...m, key_name: action.keyName }
-          : m
-      );
+    case "SET_MEASURE_KEY": {
+      const targetIdx = state.findIndex((m) => m.tempId === action.measureTempId);
+      if (targetIdx === -1) return state;
+
+      const target = state[targetIdx]!;
+      const oldKeyName = target.key_name ?? null;
+      const newKeyName = action.keyName ?? null;
+
+      if (oldKeyName === newKeyName) return state;
+
+      const result = [...state];
+      result[targetIdx] = { ...target, key_name: newKeyName };
+
+      for (let i = targetIdx + 1; i < result.length; i++) {
+        const m = result[i]!;
+        if (m._destroy) continue;
+        if ((m.key_name ?? null) !== oldKeyName) break;
+        result[i] = { ...m, key_name: newKeyName };
+      }
+
+      return result;
+    }
 
     case "APPLY_KEY_CHANGE": {
       const { oldKey, newKey, mode } = action;
