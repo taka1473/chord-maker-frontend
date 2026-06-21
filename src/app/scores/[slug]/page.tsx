@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { fetchWholeScoreServer } from "@/lib/fetch-score";
 import { ScoreDetailClient } from "@/features/scores/components/ScoreDetailClient";
-import { formatKeyDisplay } from "@/features/scores/types";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -20,13 +19,10 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     ? `${score.title} - ${score.artist}`
     : score.title;
 
-  const descriptionParts = [
-    `Key: ${formatKeyDisplay(score.key_name, score.key_mode)}`,
-    score.tempo ? `BPM: ${score.tempo}` : null,
-    score.time_signature ? `拍子: ${score.time_signature}` : null,
-  ].filter(Boolean);
-
-  const description = `${score.title}のコード譜。${descriptionParts.join(" / ")}`;
+  const scoreName = score.artist
+    ? `${score.title}（${score.artist}）`
+    : score.title;
+  const description = `${scoreName}のコード譜をChordletで。閲覧しながら直感的に編集・公開できる無料コード譜共有サービス。`;
 
   return {
     title,

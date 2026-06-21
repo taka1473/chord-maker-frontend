@@ -8,13 +8,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const scoreEntries: MetadataRoute.Sitemap = scores.map((score) => ({
     url: `${siteUrl}/scores/${score.slug}`,
-    lastModified: score.created_at,
+    lastModified: new Date(score.created_at),
+    changeFrequency: "weekly",
+    priority: 0.8,
   }));
 
   return [
     {
       url: siteUrl,
       changeFrequency: "daily",
+      priority: 1.0,
     },
     ...scoreEntries,
   ];

@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     default: "Chordlet",
     template: "%s | Chordlet",
   },
-  description: "コード譜を作成・共有するプラットフォーム",
+  description: "Chordletは、コード譜を直感的に作成・編集して公開・共有できる無料サービスです。",
   metadataBase: new URL(siteUrl),
   openGraph: {
     siteName: "Chordlet",
