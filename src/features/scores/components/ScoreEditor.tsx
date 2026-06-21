@@ -950,13 +950,22 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                 {pastePreviewAfterTempId === undefined ? (
                   <>
                     <p className="text-sm text-muted">ペースト位置を選択してください</p>
-                    <button
-                      type="button"
-                      onClick={handleCancelPastePhase}
-                      className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
-                    >
-                      キャンセル
-                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={handleToggleMeasureSelectMode}
+                        className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                      >
+                        選択モードを終了
+                      </button>
+                      <button
+                        type="button"
+                        onClick={handleCancelPastePhase}
+                        className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                      >
+                        キャンセル
+                      </button>
+                    </div>
                   </>
                 ) : (
                   <>
@@ -964,6 +973,13 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                       {clipboard?.length === 1 ? "1小節" : `${clipboard?.length}小節`}をここにペーストします
                     </p>
                     <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={handleToggleMeasureSelectMode}
+                        className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
+                      >
+                        選択モードを終了
+                      </button>
                       <button
                         type="button"
                         onClick={handleCancelPastePhase}
