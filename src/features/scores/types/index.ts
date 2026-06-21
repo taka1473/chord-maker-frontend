@@ -35,6 +35,7 @@ export type Measure = {
   key: number | null;
   key_name: string | null;
   key_mode: KeyMode | null;
+  row_break_before: boolean;
   chords: Chord[];
 };
 
@@ -110,6 +111,7 @@ export type EditableMeasure = {
   position: number;
   key_name?: string | null;
   key_mode?: KeyMode | null;
+  row_break_before?: boolean;
   chords: EditableChord[];
   _destroy?: boolean;
 };

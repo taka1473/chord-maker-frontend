@@ -14,6 +14,7 @@ function toMeasuresAttributes(measures: EditableMeasure[]) {
     position: measure.position,
     key_name: measure.key_name ?? null,
     key_mode: measure.key_mode ?? null,
+    row_break_before: measure.row_break_before ?? false,
     _destroy: measure._destroy,
     chords_attributes: measure.chords.map((chord) => ({
       id: chord.id,

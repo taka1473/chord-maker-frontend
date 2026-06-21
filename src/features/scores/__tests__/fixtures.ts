@@ -21,6 +21,8 @@ export const twoMeasureScore: WholeScore = {
       position: 1,
       key: null,
       key_name: null,
+      key_mode: null,
+      row_break_before: false,
       chords: [
         { id: 1, position: 1, root_offset: 0, bass_offset: 0, chord_type: "major" },
         { id: 2, position: 2, root_offset: 9, bass_offset: 9, chord_type: "minor" },
@@ -31,6 +33,8 @@ export const twoMeasureScore: WholeScore = {
       position: 2,
       key: null,
       key_name: null,
+      key_mode: null,
+      row_break_before: false,
       chords: [
         { id: 3, position: 1, root_offset: 5, bass_offset: 5, chord_type: "major" },
         { id: 4, position: 2, root_offset: 7, bass_offset: 7, chord_type: "major" },

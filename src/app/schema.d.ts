@@ -534,6 +534,7 @@ export interface paths {
                                 key_name?: string | null;
                                 /** @enum {string|null} */
                                 key_mode?: "major" | "minor" | null;
+                                row_break_before?: boolean;
                                 _destroy?: boolean;
                                 chords_attributes?: {
                                     id?: number;
@@ -566,6 +567,7 @@ export interface paths {
                             measures?: {
                                 id?: number;
                                 position?: number;
+                                row_break_before?: boolean;
                                 chords?: {
                                     id?: number;
                                     position?: number;
@@ -620,6 +622,8 @@ export interface components {
             id: number;
             /** @description Position of the measure in the score */
             position: number;
+            /** @description Whether this measure starts a new row in the chord chart */
+            row_break_before: boolean;
             /** @description Array of chords in this measure */
             chords: components["schemas"]["Chord"][];
         };

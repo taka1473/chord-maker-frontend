@@ -34,6 +34,8 @@ function BarLine({
   isPasteTarget,
   onSelectPasteTarget,
   hideButtons,
+  showRowBreakMarker,
+  onRemoveRowBreak,
 }: {
   onClick: () => void;
   isSelected?: boolean;
@@ -42,7 +44,10 @@ function BarLine({
   isPasteTarget?: boolean;
   onSelectPasteTarget?: () => void;
   hideButtons?: boolean;
+  showRowBreakMarker?: boolean;
+  onRemoveRowBreak?: () => void;
 }) {
+  const [rowBreakPending, setRowBreakPending] = useState(false);
   // ペーストフェーズ中は常に↓ボタンを表示（モバイルでホバーなしにタップできるよう）
   const showButtons = !hideButtons && (isSelected || isPasteTarget || !!isPastePhase);
   return (
@@ -55,6 +60,34 @@ function BarLine({
             ? "w-0.5 bg-primary"
             : hideButtons ? "bg-border" : "bg-border group-hover:w-0.5 group-hover:bg-primary",
       ].join(" ")} />
+      {showRowBreakMarker && onRemoveRowBreak && (
+        <div className="absolute left-full ml-1 top-1/2 -translate-y-1/2">
+        <div
+          className="group/rb relative"
+          onMouseLeave={() => setRowBreakPending(false)}
+        >
+          <button
+            type="button"
+            onClick={() => setRowBreakPending(true)}
+            className="flex h-5 w-5 cursor-pointer items-center justify-center rounded-full bg-primary/15 text-[10px] text-primary"
+            title="改行"
+          >
+            ↵
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onRemoveRowBreak(); setRowBreakPending(false); }}
+            className={[
+              "absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 cursor-pointer items-center justify-center rounded-full bg-destructive text-[8px] text-destructive-foreground transition-opacity hover:opacity-80",
+              rowBreakPending ? "opacity-100" : "opacity-0 group-hover/rb:opacity-100",
+            ].join(" ")}
+            title="改行を削除"
+          >
+            ×
+          </button>
+        </div>
+        </div>
+      )}
       <div className={[
         "absolute flex-col gap-1",
         showButtons ? "flex" : hideButtons ? "hidden" : "hidden group-hover:flex",
@@ -121,6 +154,7 @@ function wholeScoreToEditable(ws: WholeScore): EditableMeasure[] {
     position: m.position,
     key_name: m.key_name,
     key_mode: m.key_mode,
+    row_break_before: m.row_break_before,
     chords: m.chords.map((c) => ({
       tempId: nextTempId(),
       id: c.id,
@@ -144,7 +178,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const { updateScore, error, loading } = useUpdateScore();
   const { claimScore, loading: claimLoading } = useClaimScore();
   const { user } = useAuth();
-  const cols = 4;
   const [showLoginPromo, setShowLoginPromo] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -569,6 +602,13 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     });
   }
 
+  function handleToggleRowBreak(measureTempId: string) {
+    markDirty();
+    const measure = measures.find((m) => m.tempId === measureTempId);
+    if (!measure) return;
+    dispatch({ type: "SET_MEASURE_ROW_BREAK", measureTempId, rowBreakBefore: !measure.row_break_before });
+  }
+
   function isBarLineSelected(afterMeasureTempId: string | null): boolean {
     return selection?.type === "bar_line" && selection.afterMeasureTempId === afterMeasureTempId;
   }
@@ -623,10 +663,14 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
     return result;
   }, [visibleMeasures, pastePhase, pastePreviewAfterTempId, clipboard]);
 
-  // displayMeasures を rows に分割
+  // displayMeasures を row_break_before で行分割
   const rows: DisplayMeasure[][] = [];
-  for (let i = 0; i < displayMeasures.length; i += cols) {
-    rows.push(displayMeasures.slice(i, i + cols));
+  for (const measure of displayMeasures) {
+    if (rows.length === 0 || (!measure._preview && measure.row_break_before)) {
+      rows.push([measure]);
+    } else {
+      rows[rows.length - 1]!.push(measure);
+    }
   }
 
   const keyChangeExample = (() => {
@@ -858,13 +902,17 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     hideButtons={measureSelectMode && !pastePhase}
                   />
 
-                  {row.map((measure) => {
+                  {row.map((measure, measureIdx) => {
                     const isPreview = !!(measure as DisplayMeasure)._preview;
                     const ek = isPreview ? undefined : effectiveKeys.get(measure.tempId);
                     const measureScoreKey = ek?.scoreKey ?? scoreKey;
                     const measureUseFlats = ek?.useFlats ?? useFlats;
                     // プレビュー小節の afterTempId は undefined（バーライン不要）
                     const trailingAfterTempId = isPreview ? null : measure.tempId;
+                    // 行末かつ次の行の先頭が row_break_before=true なら "↵" マーカーを表示
+                    const isLastInRow = measureIdx === row.length - 1;
+                    const nextRowFirstMeasure = isLastInRow ? rows[rowIdx + 1]?.[0] : undefined;
+                    const showRowBreakMarker = !measureSelectMode && !pastePhase && isLastInRow && !!(nextRowFirstMeasure?.row_break_before);
 
                     return (
                       <Fragment key={measure.tempId}>
@@ -907,6 +955,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             isPasteTarget={isPasteTargetBarLine(trailingAfterTempId)}
                             onSelectPasteTarget={() => handleSelectPasteTarget(trailingAfterTempId)}
                             hideButtons={measureSelectMode && !pastePhase}
+                            showRowBreakMarker={showRowBreakMarker}
+                            onRemoveRowBreak={showRowBreakMarker && nextRowFirstMeasure ? () => handleToggleRowBreak(nextRowFirstMeasure.tempId) : undefined}
                           />
                         )}
                       </Fragment>
@@ -1097,8 +1147,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                       ▶
                     </button>
                   </div>
-                  {/* 右: コード追加 + 小節追加 */}
-                  <div className="flex w-16 items-center justify-end gap-1">
+                  {/* 右: コード追加 + 小節追加 + 改行 */}
+                  <div className="flex w-24 items-center justify-end gap-1">
                     {selection && "measureTempId" in selection && (
                       <button
                         type="button"
@@ -1133,6 +1183,28 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                         +𝄁
                       </button>
                     )}
+                    {(() => {
+                      const selMeasureTempId = selection && "measureTempId" in selection ? selection.measureTempId : null;
+                      if (!selMeasureTempId) return null;
+                      if (visibleMeasures[0]?.tempId === selMeasureTempId) return null;
+                      const selMeasure = measures.find((m) => m.tempId === selMeasureTempId);
+                      const isRowBreak = selMeasure?.row_break_before ?? false;
+                      return (
+                        <button
+                          type="button"
+                          title={isRowBreak ? "改行を削除" : "ここで改行"}
+                          onClick={() => handleToggleRowBreak(selMeasureTempId)}
+                          className={[
+                            "flex h-7 w-7 items-center justify-center rounded border text-xs transition-colors",
+                            isRowBreak
+                              ? "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20"
+                              : "border-border text-muted hover:bg-primary/5 hover:text-foreground active:bg-primary/10",
+                          ].join(" ")}
+                        >
+                          ↵
+                        </button>
+                      );
+                    })()}
                   </div>
                 </div>
 

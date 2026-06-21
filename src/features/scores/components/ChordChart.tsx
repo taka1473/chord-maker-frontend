@@ -120,9 +120,13 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
 
       <div className="space-y-2">
         {(() => {
-          const rows = [];
-          for (let i = 0; i < measuresRenderable.length; i += 4) {
-            rows.push(measuresRenderable.slice(i, i + 4));
+          const rows: typeof measuresRenderable[] = [];
+          for (const item of measuresRenderable) {
+            if (rows.length === 0 || item.measure.row_break_before) {
+              rows.push([item]);
+            } else {
+              rows[rows.length - 1]!.push(item);
+            }
           }
           return rows.map((row, rowIdx) => (
             <div key={rowIdx} className="flex items-stretch">

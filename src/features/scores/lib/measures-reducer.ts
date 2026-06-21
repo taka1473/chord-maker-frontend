@@ -28,6 +28,7 @@ export type MeasureAction =
     }
   | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null }
   | { type: "SET_MEASURE_KEY_MODE"; measureTempId: string; keyMode: KeyMode }
+  | { type: "SET_MEASURE_ROW_BREAK"; measureTempId: string; rowBreakBefore: boolean }
   | { type: "APPLY_KEY_CHANGE"; oldKey: number; newKey: number; mode: "relative" | "absolute" };
 
 export function measuresReducer(
@@ -214,6 +215,15 @@ export function measuresReducer(
 
       const result = [...state];
       result[targetIdx] = { ...result[targetIdx]!, key_mode: action.keyMode };
+      return result;
+    }
+
+    case "SET_MEASURE_ROW_BREAK": {
+      const targetIdx = state.findIndex((m) => m.tempId === action.measureTempId);
+      if (targetIdx === -1) return state;
+
+      const result = [...state];
+      result[targetIdx] = { ...result[targetIdx]!, row_break_before: action.rowBreakBefore };
       return result;
     }
 
