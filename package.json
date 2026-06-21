@@ -15,6 +15,7 @@
     "react-dom": "19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.61.0",
     "@storybook/nextjs": "^10.4.2",
     "@storybook/react": "^10.4.2",
     "@tailwindcss/postcss": "^4",
