@@ -12,6 +12,7 @@ export const twoMeasureScore: WholeScore = {
   tempo: null,
   time_signature: "4/4",
   lyrics: null,
+  key_mode: "major",
   published: false,
   tag_names: [],
   measures: [

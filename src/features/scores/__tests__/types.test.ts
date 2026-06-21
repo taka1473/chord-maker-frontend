@@ -81,23 +81,23 @@ describe("formatChord", () => {
   const scoreKeyC = 3; // C
 
   it("formats a simple major chord", () => {
-    const chord = { root_offset: 0, bass_offset: 0, chord_type: "major" };
+    const chord = { root_offset: 0, bass_offset: 0, chord_type: "major" as const };
     expect(formatChord(chord, scoreKeyC)).toBe("C");
   });
 
   it("formats a minor chord", () => {
-    const chord = { root_offset: 4, bass_offset: 4, chord_type: "minor" };
+    const chord = { root_offset: 4, bass_offset: 4, chord_type: "minor" as const };
     expect(formatChord(chord, scoreKeyC)).toBe("Em");
   });
 
   it("formats a chord with different bass (slash chord)", () => {
-    const chord = { root_offset: 0, bass_offset: 7, chord_type: "major" };
+    const chord = { root_offset: 0, bass_offset: 7, chord_type: "major" as const };
     // root=C, bass=G → C/G
     expect(formatChord(chord, scoreKeyC)).toBe("C/G");
   });
 
   it("uses flat notation when specified", () => {
-    const chord = { root_offset: 1, bass_offset: 1, chord_type: "minor" };
+    const chord = { root_offset: 1, bass_offset: 1, chord_type: "minor" as const };
     expect(formatChord(chord, scoreKeyC, true)).toBe("Dbm");
     expect(formatChord(chord, scoreKeyC, false)).toBe("C#m");
   });

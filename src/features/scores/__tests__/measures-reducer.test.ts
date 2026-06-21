@@ -7,7 +7,7 @@ function makeMeasure(tempId: string, position: number, chords: EditableMeasure["
 }
 
 function makeChord(tempId: string, position: number, overrides: Partial<EditableMeasure["chords"][0]> = {}) {
-  return { tempId, position, root_offset: 0, bass_offset: 0, chord_type: "major", ...overrides };
+  return { tempId, position, root_offset: 0, bass_offset: 0, chord_type: "major" as const, ...overrides };
 }
 
 describe("measuresReducer", () => {

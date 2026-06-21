@@ -36,12 +36,19 @@ const navStories = composeStories(NavigationStories);
 const pendingStories = composeStories(PendingStories);
 const panelStories = composeStories(PanelStories);
 
-function runStory(Story: React.ComponentType & { play?: (ctx: { canvasElement: HTMLElement; step: (label: string, fn: () => unknown) => Promise<void> }) => Promise<void> }) {
+type StoryWithPlay = React.ComponentType & {
+  play?: (ctx: { canvasElement: HTMLElement; step: (label: string, fn: (...args: unknown[]) => unknown) => Promise<void> }) => Promise<void>;
+};
+
+function runStory(Story: React.ComponentType) {
   return async () => {
     const { container } = render(<Story />);
-    await Story.play?.({
+    // Cast to access play: full StoryContext has many required fields that stories don't use,
+    // so we use a minimal context and bypass the type mismatch here.
+    const s = Story as StoryWithPlay;
+    await s.play?.({
       canvasElement: container,
-      step: async (_label, fn) => { await fn(); },
+      step: async (_: string, fn: (...args: unknown[]) => unknown) => { await fn(); },
     });
   };
 }
@@ -63,5 +70,5 @@ describe("ScoreEditor パネル表示", () => {
   it("pending 中はパネルに「--」が表示され+♩が無効化される", runStory(panelStories.PanelShowsDashAndDisabledAddForPending));
   it("chord_gap 選択中はコード挿入ボタンが表示される", runStory(panelStories.ChordGapPanelShowsInsertChordButton));
   it("bar_line 選択中は小節挿入ボタンが表示される", runStory(panelStories.BarLinePanelShowsInsertMeasureButton));
-  it("小節選択中はコピー・削除ボタンが表示される", runStory(panelStories.MeasurePanelShowsControls));
+  it("小節選択中は削除ボタンが表示される", runStory(panelStories.MeasurePanelShowsControls));
 });

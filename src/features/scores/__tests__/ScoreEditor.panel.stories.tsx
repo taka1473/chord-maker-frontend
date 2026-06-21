@@ -63,7 +63,7 @@ export const BarLinePanelShowsInsertMeasureButton: Story = {
   },
 };
 
-// measure selected → copy + delete measure buttons appear in panel
+// measure selected → delete measure button appears in panel
 // G (12) → ◀ × 4 → measure(M2) (8)
 export const MeasurePanelShowsControls: Story = {
   play: async ({ canvasElement }) => {
@@ -72,7 +72,6 @@ export const MeasurePanelShowsControls: Story = {
       await userEvent.click(canvas.getByRole("button", { name: "◀" }));
     }
     await expect(canvas.getByText("小節選択中")).toBeInTheDocument();
-    await expect(canvas.getByRole("button", { name: "コピー" })).toBeInTheDocument();
     await expect(canvas.getByRole("button", { name: "小節を削除" })).toBeInTheDocument();
   },
 };
