@@ -128,40 +128,45 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
               rows[rows.length - 1]!.push(item);
             }
           }
-          return rows.map((row, rowIdx) => (
-            <div key={rowIdx} className="flex items-stretch">
-              {row.map(({ measure, effectiveKey, effectiveFlats, transposedKeyDisplay }) => {
-                const sortedChords = [...measure.chords].sort(
-                  (a, b) => a.position - b.position
-                );
-                return (
-                  <div
-                    key={measure.id}
-                    className="border-l border-border px-3 py-1 first:border-l-0 first:pl-0"
-                  >
-                    <div className="mb-1 min-h-[18px]">
-                      {transposedKeyDisplay && (
-                        <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-                          Key: {transposedKeyDisplay}
-                        </span>
+          return rows.map((row, rowIdx) => {
+            const rowHasKeyBadge = row.some((item) => !!item.transposedKeyDisplay);
+            return (
+              <div key={rowIdx} className="flex items-stretch">
+                {row.map(({ measure, effectiveKey, effectiveFlats, transposedKeyDisplay }) => {
+                  const sortedChords = [...measure.chords].sort(
+                    (a, b) => a.position - b.position
+                  );
+                  return (
+                    <div
+                      key={measure.id}
+                      className="border-l border-border px-1.5 py-1 first:border-l-0 first:pl-0"
+                    >
+                      {(rowHasKeyBadge) && (
+                        <div className="mb-2 h-5">
+                          {transposedKeyDisplay && (
+                            <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                              Key: {transposedKeyDisplay}
+                            </span>
+                          )}
+                        </div>
                       )}
+                      <div className="flex gap-1.5">
+                        {sortedChords.length === 0 ? (
+                          <span className="font-mono text-sm text-muted whitespace-nowrap">―</span>
+                        ) : (
+                          sortedChords.map((chord) => (
+                            <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
+                              {formatChord(chord, effectiveKey, effectiveFlats)}
+                            </span>
+                          ))
+                        )}
+                      </div>
                     </div>
-                    <div className="flex gap-2">
-                      {sortedChords.length === 0 ? (
-                        <span className="font-mono text-sm text-muted whitespace-nowrap">―</span>
-                      ) : (
-                        sortedChords.map((chord) => (
-                          <span key={chord.id} className="font-mono text-sm whitespace-nowrap">
-                            {formatChord(chord, effectiveKey, effectiveFlats)}
-                          </span>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ));
+                  );
+                })}
+              </div>
+            );
+          });
         })()}
       </div>
     </div>

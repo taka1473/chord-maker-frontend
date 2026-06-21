@@ -8,6 +8,7 @@ type MeasureEditorProps = {
   scoreKey: number;
   useFlats?: boolean;
   keyBadgeName?: string | null;
+  reserveBadgeRow?: boolean;
   selectedChordTempId: string | null;
   isMeasureSelected: boolean;
   onSelectMeasure: () => void;
@@ -29,7 +30,7 @@ function ChordGap({ onClick, isSelected, disabled }: { onClick: () => void; isSe
       type="button"
       onClick={onClick}
       disabled={disabled}
-      className="group flex w-2 shrink-0 cursor-pointer items-center justify-center self-stretch disabled:pointer-events-none"
+      className="group flex w-1.5 shrink-0 cursor-pointer items-center justify-center self-stretch disabled:pointer-events-none"
       title="コードを挿入"
     >
       <div className={[
@@ -51,6 +52,7 @@ export function MeasureEditor({
   scoreKey,
   useFlats = false,
   keyBadgeName,
+  reserveBadgeRow = false,
   selectedChordTempId,
   isMeasureSelected,
   onSelectMeasure,
@@ -66,12 +68,13 @@ export function MeasureEditor({
   isPreview = false,
 }: MeasureEditorProps) {
   const visibleChords = measure.chords.filter((c) => !c._destroy);
+  const showBadgeRow = reserveBadgeRow || !!keyBadgeName;
 
   if (isMeasureSelectMode || isPreview) {
     return (
       <div
         className={[
-          "px-3 py-1 transition-colors",
+          "py-1 transition-colors",
           isPreview
             ? "pointer-events-none opacity-50"
             : !onMeasureTap
@@ -84,13 +87,15 @@ export function MeasureEditor({
         ].join(" ")}
         onClick={isPreview ? undefined : onMeasureTap}
       >
-        <div className="mb-1 min-h-[18px]">
-          {keyBadgeName && (
-            <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-              Key: {keyBadgeName}
-            </span>
-          )}
-        </div>
+        {showBadgeRow && (
+          <div className="mb-2 h-5">
+            {keyBadgeName && (
+              <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+                Key: {keyBadgeName}
+              </span>
+            )}
+          </div>
+        )}
         <div className="flex items-center">
           {visibleChords.length > 0 ? (
             <>
@@ -117,18 +122,20 @@ export function MeasureEditor({
   return (
     <div
       className={[
-        "cursor-pointer px-3 py-1 transition-colors",
+        "cursor-pointer py-1 transition-colors",
         isMeasureSelected ? "bg-primary/5" : "",
       ].join(" ")}
       onClick={onSelectMeasure}
     >
-      <div className="mb-1 min-h-[18px]">
-        {keyBadgeName && (
-          <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-            Key: {keyBadgeName}
-          </span>
-        )}
-      </div>
+      {showBadgeRow && (
+        <div className="mb-2 h-5">
+          {keyBadgeName && (
+            <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
+              Key: {keyBadgeName}
+            </span>
+          )}
+        </div>
+      )}
 
       <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
         {visibleChords.length > 0 ? (

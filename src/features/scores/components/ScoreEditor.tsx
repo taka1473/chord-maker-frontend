@@ -55,7 +55,7 @@ function BarLine({
       {/* 縦線 + 小節挿入ボタン */}
       <div className="group/bar relative flex h-full w-3 items-center justify-center">
         <div className={[
-          "h-full w-px transition-all",
+          "h-[80%] w-px transition-all",
           hideBar && !isSelected && !isPasteTarget
             ? hideButtons ? "bg-transparent" : "bg-transparent group-hover/bar:bg-primary"
             : isSelected || isPasteTarget
@@ -904,7 +904,9 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     hideButtons={measureSelectMode && !pastePhase}
                   />
 
-                  {row.map((measure, measureIdx) => {
+                  {(() => {
+                    const rowHasKeyBadge = row.some((m) => !(m as DisplayMeasure)._preview && keyBadges.has(m.tempId));
+                    return row.map((measure, measureIdx) => {
                     const isPreview = !!(measure as DisplayMeasure)._preview;
                     const ek = isPreview ? undefined : effectiveKeys.get(measure.tempId);
                     const measureScoreKey = ek?.scoreKey ?? scoreKey;
@@ -924,6 +926,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                             scoreKey={measureScoreKey}
                             useFlats={measureUseFlats}
                             keyBadgeName={keyBadges.get(measure.tempId) ?? null}
+                            reserveBadgeRow={rowHasKeyBadge}
                             selectedChordTempId={
                               !measureSelectMode && selection?.type === "chord" && selection.measureTempId === measure.tempId
                                 ? selection.chordTempId
@@ -963,7 +966,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                         )}
                       </div>
                     );
-                  })}
+                  });
+                  })()}
                 </div>
               );
             })}
