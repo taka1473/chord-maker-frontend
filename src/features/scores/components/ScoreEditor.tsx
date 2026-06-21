@@ -42,7 +42,8 @@ function BarLine({
   onSelectPasteTarget?: () => void;
   hideButtons?: boolean;
 }) {
-  const showButtons = !hideButtons && (isSelected || isPasteTarget);
+  // ペーストフェーズ中は常に↓ボタンを表示（モバイルでホバーなしにタップできるよう）
+  const showButtons = !hideButtons && (isSelected || isPasteTarget || !!isPastePhase);
   return (
     <div className="group relative flex w-3 shrink-0 items-center justify-center self-stretch">
       <div className={[
