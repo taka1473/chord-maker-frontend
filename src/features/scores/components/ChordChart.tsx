@@ -135,13 +135,13 @@ export function ChordChart({ wholeScore }: ChordChartProps) {
                     key={measure.id}
                     className="border-l border-border px-3 py-1 first:border-l-0 first:pl-0"
                   >
-                    {transposedKeyDisplay && (
-                      <div className="mb-1">
+                    <div className="mb-1 min-h-[18px]">
+                      {transposedKeyDisplay && (
                         <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
                           Key: {transposedKeyDisplay}
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                     <div className="flex gap-2">
                       {sortedChords.length === 0 ? (
                         <span className="font-mono text-sm text-muted whitespace-nowrap">―</span>

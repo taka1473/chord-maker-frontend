@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { EditableMeasure } from "@/features/scores/types";
-import { formatKeyDisplay } from "@/features/scores/types";
+
 import { ChordDisplay } from "@/features/scores/components/ChordDisplay";
 
 type MeasureEditorProps = {
@@ -84,13 +84,13 @@ export function MeasureEditor({
         ].join(" ")}
         onClick={isPreview ? undefined : onMeasureTap}
       >
-        {keyBadgeName && (
-          <div className="mb-1">
+        <div className="mb-1 min-h-[18px]">
+          {keyBadgeName && (
             <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
               Key: {keyBadgeName}
             </span>
-          </div>
-        )}
+          )}
+        </div>
         <div className="flex items-center">
           {visibleChords.length > 0 ? (
             <>
@@ -122,13 +122,13 @@ export function MeasureEditor({
       ].join(" ")}
       onClick={onSelectMeasure}
     >
-      {measure.key_name && (
-        <div className="mb-1">
+      <div className="mb-1 min-h-[18px]">
+        {keyBadgeName && (
           <span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-medium text-accent">
-            Key: {formatKeyDisplay(measure.key_name, measure.key_mode ?? "major")}
+            Key: {keyBadgeName}
           </span>
-        </div>
-      )}
+        )}
+      </div>
 
       <div className="flex items-center" onClick={(e) => e.stopPropagation()}>
         {visibleChords.length > 0 ? (
