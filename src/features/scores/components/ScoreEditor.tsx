@@ -362,6 +362,20 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
 
   const navItems = useMemo(() => buildNavItems(visibleMeasures), [visibleMeasures]);
 
+  const selectedMeasuresBulkKey = useMemo(() => {
+    if (selectedMeasureTempIds.length === 0) return "";
+    const data = visibleMeasures.filter((m) => selectedMeasureTempIds.includes(m.tempId));
+    const first = data[0]?.key_name ?? "";
+    return data.every((m) => (m.key_name ?? "") === first) ? first : "__mixed__";
+  }, [selectedMeasureTempIds, visibleMeasures]);
+
+  const selectedMeasuresBulkMode = useMemo(() => {
+    if (selectedMeasureTempIds.length === 0) return "major" as KeyMode;
+    const data = visibleMeasures.filter((m) => selectedMeasureTempIds.includes(m.tempId));
+    const first = data[0]?.key_mode ?? "major";
+    return data.every((m) => (m.key_mode ?? "major") === first) ? first : null;
+  }, [selectedMeasureTempIds, visibleMeasures]);
+
   function handleNavigate(direction: "left" | "right") {
     if (!selection) {
       const first = navItems[0];
@@ -1081,6 +1095,56 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                     ? "操作する小節をタップして選択してください"
                     : `${selectedMeasureTempIds.length}小節を選択中`}
                 </p>
+                {selectedMeasureTempIds.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-xs font-medium text-muted">転調:</span>
+                    <select
+                      className="rounded border border-border bg-background px-2 py-1 text-sm"
+                      value={selectedMeasuresBulkKey}
+                      onChange={(e) => {
+                        if (e.target.value === "__mixed__") return;
+                        markDirty();
+                        dispatch({
+                          type: "SET_MEASURES_KEY",
+                          tempIds: selectedMeasureTempIds,
+                          keyName: e.target.value || null,
+                        });
+                      }}
+                    >
+                      {selectedMeasuresBulkKey === "__mixed__" && (
+                        <option value="__mixed__" disabled>(混在)</option>
+                      )}
+                      <option value="">なし</option>
+                      {KEY_NAMES.map((k) => (
+                        <option key={k} value={k}>{k}</option>
+                      ))}
+                    </select>
+                    {selectedMeasuresBulkKey !== "" && selectedMeasuresBulkKey !== "__mixed__" && (
+                      <div className="flex items-center gap-2">
+                        {(["major", "minor"] as KeyMode[]).map((mode) => (
+                          <label key={mode} className="flex cursor-pointer items-center gap-1 text-xs">
+                            <input
+                              type="radio"
+                              name="bulk_measure_key_mode"
+                              value={mode}
+                              checked={selectedMeasuresBulkMode === mode}
+                              onChange={() => {
+                                markDirty();
+                                dispatch({
+                                  type: "SET_MEASURES_KEY_MODE",
+                                  tempIds: selectedMeasureTempIds,
+                                  keyMode: mode,
+                                });
+                              }}
+                              className="accent-primary"
+                            />
+                            {mode === "major" ? "Major" : "Minor"}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <div className="flex gap-3">
                   <button
                     type="button"

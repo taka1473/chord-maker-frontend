@@ -28,6 +28,8 @@ export type MeasureAction =
     }
   | { type: "SET_MEASURE_KEY"; measureTempId: string; keyName: string | null }
   | { type: "SET_MEASURE_KEY_MODE"; measureTempId: string; keyMode: KeyMode }
+  | { type: "SET_MEASURES_KEY"; tempIds: string[]; keyName: string | null }
+  | { type: "SET_MEASURES_KEY_MODE"; tempIds: string[]; keyMode: KeyMode }
   | { type: "SET_MEASURE_ROW_BREAK"; measureTempId: string; rowBreakBefore: boolean }
   | { type: "APPLY_KEY_CHANGE"; oldKey: number; newKey: number; mode: "relative" | "absolute" };
 
@@ -216,6 +218,23 @@ export function measuresReducer(
       const result = [...state];
       result[targetIdx] = { ...result[targetIdx]!, key_mode: action.keyMode };
       return result;
+    }
+
+    case "SET_MEASURES_KEY": {
+      const tempIdSet = new Set(action.tempIds);
+      return state.map((m) => {
+        if (!tempIdSet.has(m.tempId)) return m;
+        const newKeyMode = action.keyName === null ? null : (m.key_mode ?? "major");
+        return { ...m, key_name: action.keyName, key_mode: newKeyMode };
+      });
+    }
+
+    case "SET_MEASURES_KEY_MODE": {
+      const tempIdSet = new Set(action.tempIds);
+      return state.map((m) => {
+        if (!tempIdSet.has(m.tempId)) return m;
+        return { ...m, key_mode: action.keyMode };
+      });
     }
 
     case "SET_MEASURE_ROW_BREAK": {
