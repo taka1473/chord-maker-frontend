@@ -207,6 +207,7 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
   const [selectedMeasureTempIds, setSelectedMeasureTempIds] = useState<string[]>([]);
   const [pastePhase, setPastePhase] = useState(false);
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [transposeExpanded, setTransposeExpanded] = useState(false);
   // undefined=未選択, null=先頭前, string=その小節の後ろ
   const [pastePreviewAfterTempId, setPastePreviewAfterTempId] = useState<string | null | undefined>(undefined);
 
@@ -488,11 +489,13 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       setSelectedMeasureTempIds([]);
       setPastePhase(false);
       setPastePreviewAfterTempId(undefined);
+      setTransposeExpanded(false);
     } else {
       setMeasureSelectMode(true);
       setSelectedMeasureTempIds([]);
       setPastePhase(false);
       setPastePreviewAfterTempId(undefined);
+      setTransposeExpanded(false);
       setSelection(null);
     }
   }
@@ -506,7 +509,6 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       if (prev.length === 0) return [tempId];
 
       const firstIdx = visibleIds.indexOf(prev[0]!);
-      const lastIdx = visibleIds.indexOf(prev[prev.length - 1]!);
 
       // 単一選択: 同じ小節をタップで選択解除
       if (prev.length === 1 && tapIdx === firstIdx) return [];
@@ -1089,52 +1091,97 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
               </div>
             ) : measureSelectMode ? (
               /* 小節選択モード: 選択フェーズ */
-              <div className="flex h-full flex-col items-center justify-center gap-4">
-                <p className="text-sm text-muted">
-                  {selectedMeasureTempIds.length === 0
-                    ? "操作する小節をタップして選択してください"
-                    : `${selectedMeasureTempIds.length}小節を選択中`}
-                </p>
-                {selectedMeasureTempIds.length > 0 && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="text-xs font-medium text-muted">転調:</span>
-                    <select
-                      className="rounded border border-border bg-background px-2 py-1 text-sm"
-                      value={selectedMeasuresBulkKey}
-                      onChange={(e) => {
-                        if (e.target.value === "__mixed__") return;
-                        markDirty();
-                        dispatch({
-                          type: "SET_MEASURES_KEY",
-                          tempIds: selectedMeasureTempIds,
-                          keyName: e.target.value || null,
-                        });
-                      }}
+              <div className="flex h-full flex-col">
+                {/* キャンセル: 上部に独立配置 */}
+                <div className="flex shrink-0 justify-end">
+                  <button
+                    type="button"
+                    onClick={handleToggleMeasureSelectMode}
+                    className="rounded px-2 py-1 text-sm text-muted transition-colors hover:bg-primary/5 hover:text-foreground"
+                  >
+                    × キャンセル
+                  </button>
+                </div>
+                {/* 中央: ステータス + アクション */}
+                <div className="flex flex-1 flex-col items-center justify-center gap-4">
+                  <p className="text-sm text-muted">
+                    {selectedMeasureTempIds.length === 0
+                      ? "操作する小節をタップして選択してください"
+                      : `${selectedMeasureTempIds.length}小節を選択中`}
+                  </p>
+                  {/* 3アクションボタン */}
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      disabled={selectedMeasureTempIds.length === 0}
+                      onClick={() => setConfirmDeleteOpen(true)}
+                      className="rounded border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
                     >
-                      {selectedMeasuresBulkKey === "__mixed__" && (
-                        <option value="__mixed__" disabled>(混在)</option>
-                      )}
-                      <option value="">なし</option>
-                      {KEY_NAMES.map((k) => (
-                        <option key={k} value={k}>{k}</option>
-                      ))}
-                    </select>
-                    {selectedMeasuresBulkKey !== "" && selectedMeasuresBulkKey !== "__mixed__" && (
-                      <div className="flex items-center gap-2">
+                      削除
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedMeasureTempIds.length === 0}
+                      onClick={handleCopySelectedMeasures}
+                      className="rounded border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-primary/5 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      コピー
+                    </button>
+                    <button
+                      type="button"
+                      disabled={selectedMeasureTempIds.length === 0}
+                      onClick={() => setTransposeExpanded((v) => !v)}
+                      className={[
+                        "rounded px-4 py-2 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40",
+                        transposeExpanded
+                          ? "bg-primary text-primary-foreground hover:opacity-90"
+                          : "border border-border hover:bg-primary/5",
+                      ].join(" ")}
+                    >
+                      転調
+                    </button>
+                  </div>
+                  {/* 転調展開: dropdown + Major/Minor */}
+                  {transposeExpanded && (
+                    <div className="flex flex-wrap items-center gap-3">
+                      <select
+                        className="rounded border border-border bg-background px-2 py-1 text-sm"
+                        value={selectedMeasuresBulkKey}
+                        onChange={(e) => {
+                          if (e.target.value === "__mixed__") return;
+                          markDirty();
+                          dispatch({
+                            type: "SET_MEASURES_KEY",
+                            tempIds: selectedMeasureTempIds,
+                            keyName: e.target.value || null,
+                          });
+                        }}
+                      >
+                        {selectedMeasuresBulkKey === "__mixed__" && (
+                          <option value="__mixed__" disabled>(混在)</option>
+                        )}
+                        <option value="">なし</option>
+                        {KEY_NAMES.map((k) => (
+                          <option key={k} value={k}>{k}</option>
+                        ))}
+                      </select>
+                      <div className="flex items-center gap-3">
                         {(["major", "minor"] as KeyMode[]).map((mode) => (
                           <label key={mode} className="flex cursor-pointer items-center gap-1 text-xs">
                             <input
                               type="radio"
                               name="bulk_measure_key_mode"
                               value={mode}
-                              checked={selectedMeasuresBulkMode === mode}
+                              checked={(selectedMeasuresBulkMode ?? "major") === mode}
                               onChange={() => {
-                                markDirty();
-                                dispatch({
-                                  type: "SET_MEASURES_KEY_MODE",
-                                  tempIds: selectedMeasureTempIds,
-                                  keyMode: mode,
-                                });
+                                if (selectedMeasuresBulkKey && selectedMeasuresBulkKey !== "__mixed__") {
+                                  markDirty();
+                                  dispatch({
+                                    type: "SET_MEASURES_KEY_MODE",
+                                    tempIds: selectedMeasureTempIds,
+                                    keyMode: mode,
+                                  });
+                                }
                               }}
                               className="accent-primary"
                             />
@@ -1142,33 +1189,8 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
                           </label>
                         ))}
                       </div>
-                    )}
-                  </div>
-                )}
-                <div className="flex gap-3">
-                  <button
-                    type="button"
-                    onClick={handleToggleMeasureSelectMode}
-                    className="rounded border border-border px-4 py-2 text-sm transition-colors hover:bg-primary/5"
-                  >
-                    キャンセル
-                  </button>
-                  <button
-                    type="button"
-                    disabled={selectedMeasureTempIds.length === 0}
-                    onClick={() => setConfirmDeleteOpen(true)}
-                    className="rounded border border-destructive/40 px-4 py-2 text-sm font-medium text-destructive transition-colors hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    削除
-                  </button>
-                  <button
-                    type="button"
-                    disabled={selectedMeasureTempIds.length === 0}
-                    onClick={handleCopySelectedMeasures}
-                    className="rounded bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                  >
-                    コピー
-                  </button>
+                    </div>
+                  )}
                 </div>
               </div>
             ) : (
