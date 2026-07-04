@@ -461,7 +461,7 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description successful */
+                /** @description returns measures and chords in position order even when inserted in reverse */
                 200: {
                     headers: {
                         [name: string]: unknown;
@@ -595,6 +595,43 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/api/tags": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** suggest tags */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description Search query (min 2 chars). Supports partial match. */
+                    q?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description excludes tags only on unpublished scores */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
