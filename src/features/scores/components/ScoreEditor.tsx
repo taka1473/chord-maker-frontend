@@ -494,16 +494,17 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       const firstIdx = visibleIds.indexOf(prev[0]!);
       const lastIdx = visibleIds.indexOf(prev[prev.length - 1]!);
 
-      // 端を縮小
-      if (tapIdx === firstIdx && firstIdx === lastIdx) return [];
-      if (tapIdx === firstIdx) return prev.slice(1);
-      if (tapIdx === lastIdx) return prev.slice(0, -1);
+      // 単一選択: 同じ小節をタップで選択解除
+      if (prev.length === 1 && tapIdx === firstIdx) return [];
 
-      // 範囲拡張
-      if (tapIdx === firstIdx - 1) return [tempId, ...prev];
-      if (tapIdx === lastIdx + 1) return [...prev, tempId];
+      // 単一選択: 別の小節をタップで始点〜終点の範囲を埋める
+      if (prev.length === 1) {
+        const start = Math.min(firstIdx, tapIdx);
+        const end = Math.max(firstIdx, tapIdx);
+        return visibleIds.slice(start, end + 1);
+      }
 
-      // 非隣接: リセット
+      // 範囲選択: どこをタップしても始点を選び直す
       return [tempId];
     });
   }
