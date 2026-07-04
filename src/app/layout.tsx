@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import { AuthProvider } from "@/features/auth";
 import { AppHeader, AppFooter } from "@/features/shared";
 
@@ -48,6 +49,7 @@ export default function RootLayout({
           <main className="flex-1">{children}</main>
           <AppFooter />
         </AuthProvider>
+        <Analytics />
       </body>
     </html>
   );
