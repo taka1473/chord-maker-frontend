@@ -1028,11 +1028,11 @@ export function ScoreEditor({ scoreSlug, initialData, guestToken }: ScoreEditorP
       </div>
 
       {/* 固定パネル分のスペーサー */}
-      {visibleMeasures.length > 0 && <div className="h-[280px]" />}
+      {visibleMeasures.length > 0 && <div className="h-[320px]" />}
 
       {/* 画面下部固定パネル */}
       {visibleMeasures.length > 0 && (
-        <div className="fixed inset-x-0 bottom-0 z-10 h-[280px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
+        <div className="fixed inset-x-0 bottom-0 z-10 h-[320px] border-t border-border bg-background shadow-[0_-2px_8px_rgba(0,0,0,0.08)]">
           <div className="mx-auto flex h-full max-w-4xl flex-col px-4 py-3">
 
             {/* 小節選択モード: ペーストフェーズ */}
