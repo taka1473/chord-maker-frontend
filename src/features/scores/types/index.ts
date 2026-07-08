@@ -68,15 +68,21 @@ const CHORD_TYPE_SUFFIX: Record<ChordType, string> = {
   major: "",
   minor: "m",
   "7": "7",
+  "6": "6",
+  min6: "m6",
   maj7: "M7",
   min7: "m7",
   "min7-5": "m7-5",
+  maj9: "M9",
+  min9: "m9",
+  add9: "add9",
   dim: "dim",
   dim7: "dim7",
   aug: "aug",
+  aug7: "aug7",
   sus2: "sus2",
   sus4: "sus4",
-  add9: "add9",
+  "7sus4": "7sus4",
 };
 
 export function getNoteName(offset: number, scoreKey: number, useFlats = false): string {
@@ -133,8 +139,14 @@ export const KEY_NAMES = [
 ] as const;
 
 export const CHORD_TYPES: readonly ChordType[] = [
-  "major", "minor", "7", "maj7", "min7", "min7-5",
-  "dim", "dim7", "aug", "sus2", "sus4", "add9",
+  "major", "minor", "7",
+  "6", "min6",
+  "maj7", "min7", "min7-5",
+  "maj9", "min9",
+  "add9",
+  "dim", "dim7",
+  "aug", "aug7",
+  "sus2", "sus4", "7sus4",
 ];
 
 export const TIME_SIGNATURES = ["4/4", "3/4", "2/4", "6/8"] as const;
