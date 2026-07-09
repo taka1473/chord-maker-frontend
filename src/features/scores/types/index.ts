@@ -73,6 +73,7 @@ const CHORD_TYPE_SUFFIX: Record<ChordType, string> = {
   maj7: "M7",
   min7: "m7",
   "min7-5": "m7-5",
+  minmaj7: "mM7",
   maj9: "M9",
   min9: "m9",
   add9: "add9",
@@ -141,7 +142,7 @@ export const KEY_NAMES = [
 export const CHORD_TYPES: readonly ChordType[] = [
   "major", "minor", "7",
   "6", "min6",
-  "maj7", "min7", "min7-5",
+  "maj7", "min7", "min7-5", "minmaj7",
   "maj9", "min9",
   "add9",
   "dim", "dim7",
